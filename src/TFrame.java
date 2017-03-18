@@ -10,9 +10,9 @@ import javax.swing.JFrame;
 
 
 
-public class TFrame extends JFrame implements KeyListener{
+public class TFrame extends JFrame implements KeyListener {
 	private static final long serialVersionUID = 1L;
-	public TLabel label = new TLabel(300,700);
+	public TLabel label = new TLabel(800, 1800);
 	public State s;
 	
 	public int orient, slot;
