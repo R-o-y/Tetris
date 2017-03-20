@@ -1,3 +1,4 @@
+import java.util.Arrays;
 
 public class PlayerSkeleton {
     public static void main(String[] args) {
@@ -19,64 +20,67 @@ public class PlayerSkeleton {
 
     // implement this function to have a working system
     public int pickMove(State s, int[][] legalMoves) {
-        int[][] field = s.getField();
-        double[] columnHeightHeuristicWeights = {1,1,1,1,1,1,1,1,1,1};
-        double[] colHeightDifferenceHeuristicWeights = {1,1,1,1,1,1,1,1,1};
-        double maxColHeightHeuristicWeight = 1;
-        double numHolesHeuristicWeight = 1;
-        System.out.println(columnHeightHeuristic(field, columnHeightHeuristicWeights));
-        System.out.println(colHeightDifferenceHeuristic(field, colHeightDifferenceHeuristicWeights));
-        System.out.println(maxColHeightHeuristic(field, maxColHeightHeuristicWeight));
-        System.out.println(numHolesHeuristic(field, numHolesHeuristicWeight));
+        int colNum = s.getField()[0].length;
+        
+        double[] allWeights = {1,1,1,1,1,1,1,1,1,1,
+                               1,1,1,1,1,1,1,1,1,
+                               1,
+                               1};
+        
+        double[] columnHeightHeuristicWeights = Arrays.copyOfRange(allWeights, 0, colNum);
+        double[] colHeightDifferenceHeuristicWeights = Arrays.copyOfRange(allWeights, 
+                                                                          colNum, 
+                                                                          colNum + colNum - 1);
+        double maxColHeightHeuristicWeight = allWeights[colNum + colNum - 1];
+        double numHolesHeuristicWeight = allWeights[colNum + colNum];
+        
+        System.out.println(columnHeightHeuristic(s, columnHeightHeuristicWeights));
+        System.out.println(colHeightDifferenceHeuristic(s, colHeightDifferenceHeuristicWeights));
+        System.out.println(maxColHeightHeuristic(s, maxColHeightHeuristicWeight));
+        System.out.println(numHolesHeuristic(s, numHolesHeuristicWeight));
         System.out.println();
+
         return 0;
     }
     
-    private double columnHeightHeuristic(int[][] field, double[] weights) {
-        assert field.length > 0;
-        assert field[0].length > 0;
-        assert field[0].length == weights.length;
+    private double columnHeightHeuristic(State s, double[] weights) {
+        int[] colHeights = s.getTop();
         
         int accumulatedUtility = 0;
         for (int colIndex = 0; colIndex < weights.length; colIndex++) {
-            accumulatedUtility += countColHeight(field, colIndex) * weights[colIndex];
+            accumulatedUtility += colHeights[colIndex] * weights[colIndex];
         }
         return accumulatedUtility;
     }
     
-    private double colHeightDifferenceHeuristic(int[][] field, double[] weights) {
-        assert field.length > 0;
-        assert field[0].length > 0;
-        assert field[0].length - 1 == weights.length;
+    private double colHeightDifferenceHeuristic(State s, double[] weights) {
+        int[] colHeights = s.getTop();
         
         int accumulatedUtility = 0;
         for (int colIndex = 0; colIndex < weights.length - 1; colIndex++) {
-            accumulatedUtility += Math.abs(countColHeight(field, colIndex) - countColHeight(field, colIndex + 1)) * weights[colIndex];
+            accumulatedUtility += Math.abs(colHeights[colIndex] - colHeights[colIndex + 1]) * weights[colIndex];
         }
         return accumulatedUtility;
     }
     
-    private double maxColHeightHeuristic(int[][] field, double weight) {
-        assert field.length > 0;
-        assert field[0].length > 0;
+    private double maxColHeightHeuristic(State s, double weight) {
+        int[] colHeights = s.getTop();
         
         int maxColHeight = 0;
-        for (int colIndex = 0; colIndex < field[0].length; colIndex++) {
-            if (countColHeight(field, colIndex) > maxColHeight) {
-                maxColHeight =  countColHeight(field, colIndex);
+        for (int colIndex = 0; colIndex < colHeights.length; colIndex++) {
+            if (colHeights[colIndex] > maxColHeight) {
+                maxColHeight =  colHeights[colIndex];
             }
         }
         return maxColHeight * weight;
     }
     
-    private double numHolesHeuristic(int[][] field, double weight) {
-        assert field.length > 0;
-        assert field[0].length > 0;
-        
+    private double numHolesHeuristic(State s, double weight) {
+        boolean[][] breathable = getBreathable(s);
         int countHoles = 0;
-        for (int rowIndex = 0; rowIndex < field.length; rowIndex++) {
-            for (int colIndex = 0; colIndex < field[0].length; colIndex++) {
-                if (checkIsHole(field, rowIndex, colIndex)) {
+        for (int i = 0; i < breathable.length; i++) {
+            for (int j = 0; j < breathable[i].length; j++) {
+                if (breathable[i][j] == false) {
                     countHoles++;
                 }
             }
@@ -84,35 +88,47 @@ public class PlayerSkeleton {
         return weight * countHoles;
     }
     
-    // helper method to count the height of a column
-    private int countColHeight(int[][] field, int colIndex) {
-        assert colIndex <= field[0].length - 1;
-        
-        int count = 0;
-        for (int rowIndex = 0; rowIndex < field.length; rowIndex++) {
-            count += field[rowIndex][colIndex];
-        }
-        return count;
-    }
-    
-    // helper method to check whether the position specified by the row and col index is a hole
-    private boolean checkIsHole(int[][] field, int rowIndex, int colIndex) {
-        assert field.length > 0;
-        assert field[0].length > 0;
-        
+    private boolean[][] getBreathable(State s) {
+        int[][] field = s.getField();
+
         int rowNum = field.length;
         int colNum = field[0].length;
+        boolean[][] breathable = new boolean[rowNum][colNum];  // initially, all false
         
-        if (colIndex - 1 >= 0 && field[rowIndex][colIndex - 1] == 0) {
-            return false;
-        } else if (colIndex + 1 <= colNum - 1 && field[rowIndex][colIndex + 1] == 0) {
-            return false;
-        } else if (rowIndex - 1 >= 0 && field[rowIndex - 1][colIndex] == 0) {
-            return false;
-        } else if (rowIndex + 1 <= rowNum - 1 && field[rowIndex + 1][colIndex] == 0) {
-            return false;
-        } else {
-            return true;
+        // wall is breathable by definition
+        for (int i = 0; i < rowNum; i++) {
+            for (int j = 0; j < colNum; j++) {
+                if (field[i][j] != 0) {
+                    breathable[i][j] = true;
+                }
+            }
+        }
+        for (int i = 0; i < colNum; i++) {
+            if (field[rowNum - 1][i] == 0){
+                exploreFrom(breathable, rowNum - 1, i);
+            }
+        }
+        return breathable;
+    }
+    
+    private void exploreFrom(boolean[][] breathable, int rowIndex, int colIndex) {
+        int rowNum = breathable.length;
+        int colNum = breathable[0].length;
+        if (rowIndex - 1 >= 0 && !breathable[rowIndex - 1][colIndex]) {
+            breathable[rowIndex - 1][colIndex] = true;
+            exploreFrom(breathable, rowIndex - 1, colIndex);
+        }
+        if (rowIndex + 1 <= rowNum - 1 && !breathable[rowIndex + 1][colIndex]) {
+            breathable[rowIndex + 1][colIndex] = true;
+            exploreFrom(breathable, rowIndex + 1, colIndex);
+        }
+        if (colIndex - 1 >= 0 && !breathable[rowIndex][colIndex - 1]) {
+            breathable[rowIndex][colIndex - 1] = true;
+            exploreFrom(breathable, rowIndex, colIndex - 1);
+        }
+        if (colIndex + 1 <= colNum - 1 && !breathable[rowIndex][colIndex + 1]) {
+            breathable[rowIndex][colIndex + 1] = true;
+            exploreFrom(breathable, rowIndex, colIndex + 1);
         }
     }
 }
