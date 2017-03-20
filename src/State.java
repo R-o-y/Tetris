@@ -1,4 +1,5 @@
 import java.awt.Color;
+import java.util.Arrays;
 
 public class State {
     public static final int COLS = 10;
@@ -261,6 +262,20 @@ public class State {
         label.filledRectangleLL(0, ROWS + .9, COLS, 4.2, TLabel.DEFAULT_CLEAR_COLOR);
         label.line(0, 0, 0, ROWS + 5);
         label.line(COLS, 0, COLS, ROWS + 5);
+    }
+    
+    @Override
+    public State clone() {
+        State copiedState = new State();
+        copiedState.cleared = this.cleared;
+        copiedState.field = new int[this.field.length][this.field[0].length];
+        for (int i = 0; i < field.length; i++) {
+            copiedState.field[i] = Arrays.copyOf(this.field[i], this.field[i].length);
+        }          
+        copiedState.lost = this.lost;
+        copiedState.nextPiece = this.nextPiece;
+        copiedState.top = Arrays.copyOf(this.top, this.top.length);
+        return copiedState;
     }
 
 }

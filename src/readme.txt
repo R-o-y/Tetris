@@ -15,9 +15,8 @@ the turn on which that square was placed.  NextPiece (accessed by getNextPiece)
 contains the ID (0-6) of the piece you are about to play.
 
 Moves are defined by two numbers: 
-1. the SLOT, the leftmost column of the piece 
-and
-2. the ORIENT, the orientation of the piece.  
+1. the ORIENT, the orientation of the piece. and
+2. the SLOT, the leftmost column of the piece 
 Legalmoves gives an nx2 int array containing the n legal moves.  
 A move can be made by specifying the two parameters as either 
 * 2 ints, 
