@@ -152,6 +152,7 @@ public class PlayerSkeleton {
         }
     }
 
+    // this method is for testing purpose, to check whether all heuristics are calculated correctly
     public void printHeuristics(State s) {
         System.out.println(columnHeightHeuristic(s, columnHeightHeuristicWeights));
         System.out.println(colHeightDifferenceHeuristic(s, colHeightDifferenceHeuristicWeights));
