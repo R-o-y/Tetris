@@ -6,6 +6,7 @@ public class TetrisPlayer {
     double[] colHeightDifferenceHeuristicWeights;
     double maxColHeightHeuristicWeight;
     double numHolesHeuristicWeight;
+    double rowClearedWeight;
     
     public TetrisPlayer(int colNum, double[] allWeights) {
         this.allWeights = allWeights;
@@ -13,27 +14,35 @@ public class TetrisPlayer {
         colHeightDifferenceHeuristicWeights = Arrays.copyOfRange(allWeights, colNum, colNum + colNum - 1);
         maxColHeightHeuristicWeight = allWeights[colNum + colNum - 1];
         numHolesHeuristicWeight = allWeights[colNum + colNum];
+        rowClearedWeight = allWeights[colNum + colNum + 1];
     }
     
     // implement this function to have a working system
     public int pickMove(State s, int[][] legalMoves) {
-        int heuristicallyBestMoveIndex = 0;
+        int bestUtilityMoveIndex = 0;
         double tempBestUtility = Double.NEGATIVE_INFINITY;
+        
         for (int i = 0; i < legalMoves.length; i++) {
-            State simulatedState = s.clone();
-            simulatedState.makeMove(i);
-            if (calculateUtility(simulatedState) > tempBestUtility) {
-                tempBestUtility = calculateUtility(simulatedState);
-                heuristicallyBestMoveIndex = i;
+            double utility = calculateUtility(s, legalMoves, i);
+            if (utility > tempBestUtility) {
+                tempBestUtility = utility;
+                bestUtilityMoveIndex = i;
             }
         }
-        return heuristicallyBestMoveIndex;
+        return bestUtilityMoveIndex;
     }
     
-    private double calculateUtility(State s) {
-        return columnHeightHeuristic(s, columnHeightHeuristicWeights)
-                + colHeightDifferenceHeuristic(s, colHeightDifferenceHeuristicWeights)
-                + maxColHeightHeuristic(s, maxColHeightHeuristicWeight) + numHolesHeuristic(s, numHolesHeuristicWeight);
+    private double calculateUtility(State s, int[][] legalMoves, int moveIndex) {
+        State simulatedState = s.clone();
+        int previousClearedCount = simulatedState.getRowsCleared();
+        simulatedState.makeMove(moveIndex);
+        int newClearedCount = simulatedState.getRowsCleared();
+        
+        double accHeuristic = columnHeightHeuristic(simulatedState, columnHeightHeuristicWeights)
+                + colHeightDifferenceHeuristic(simulatedState, colHeightDifferenceHeuristicWeights)
+                + maxColHeightHeuristic(simulatedState, maxColHeightHeuristicWeight) + numHolesHeuristic(s, numHolesHeuristicWeight);
+
+        return accHeuristic + (newClearedCount - previousClearedCount) * rowClearedWeight;
     }
 
     private double columnHeightHeuristic(State s, double[] weights) {

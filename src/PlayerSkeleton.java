@@ -5,7 +5,8 @@ public class PlayerSkeleton {
             -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
             -1, -1, -1, -1, -1, -1, -1, -1, -1, 
             -1, 
-            -1 
+            -1,
+            1
     };
 
     public static void main(String[] args) {
