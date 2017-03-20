@@ -19,7 +19,16 @@ public class PlayerSkeleton {
 
     // implement this function to have a working system
     public int pickMove(State s, int[][] legalMoves) {
-
+        int[][] field = s.getField();
+        double[] columnHeightHeuristicWeights = {1,1,1,1,1,1,1,1,1,1};
+        double[] colHeightDifferenceHeuristicWeights = {1,1,1,1,1,1,1,1,1};
+        double maxColHeightHeuristicWeight = 1;
+        double numHolesHeuristicWeight = 1;
+        System.out.println(columnHeightHeuristic(field, columnHeightHeuristicWeights));
+        System.out.println(colHeightDifferenceHeuristic(field, colHeightDifferenceHeuristicWeights));
+        System.out.println(maxColHeightHeuristic(field, maxColHeightHeuristicWeight));
+        System.out.println(numHolesHeuristic(field, numHolesHeuristicWeight));
+        System.out.println();
         return 0;
     }
     
@@ -77,9 +86,11 @@ public class PlayerSkeleton {
     
     // helper method to count the height of a column
     private int countColHeight(int[][] field, int colIndex) {
+        assert colIndex <= field[0].length - 1;
+        
         int count = 0;
         for (int rowIndex = 0; rowIndex < field.length; rowIndex++) {
-            count += field[colIndex][rowIndex];
+            count += field[rowIndex][colIndex];
         }
         return count;
     }
