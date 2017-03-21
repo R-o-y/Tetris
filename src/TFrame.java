@@ -10,7 +10,7 @@ import javax.swing.JFrame;
 
 public class TFrame extends JFrame implements KeyListener {
     private static final long serialVersionUID = 1L;
-    public TLabel label = new TLabel(800, 1800);
+    public TLabel label = new TLabel(300, 700);
     public State s;
 
     public int orient, slot;
@@ -65,23 +65,23 @@ public class TFrame extends JFrame implements KeyListener {
 
     public void keyPressed(KeyEvent e) {
         switch (mode) {
-        case (MANUAL): {
+        case (MANUAL) : {
             switch (e.getKeyCode()) {
-            case (KeyEvent.VK_RIGHT): {
+            case (KeyEvent.VK_RIGHT) : {
                 if (slot < State.COLS - State.pWidth[s.nextPiece][orient])
                     slot++;
                 s.clearNext();
                 s.drawNext(slot, orient);
                 break;
             }
-            case (KeyEvent.VK_LEFT): {
+            case (KeyEvent.VK_LEFT) : {
                 if (slot > 0)
                     slot--;
                 s.clearNext();
                 s.drawNext(slot, orient);
                 break;
             }
-            case (KeyEvent.VK_UP): {
+            case (KeyEvent.VK_UP) : {
                 orient++;
                 if (orient % State.pOrients[s.nextPiece] == 0)
                     orient = 0;
@@ -91,7 +91,7 @@ public class TFrame extends JFrame implements KeyListener {
                 s.drawNext(slot, orient);
                 break;
             }
-            case (KeyEvent.VK_DOWN): {
+            case (KeyEvent.VK_DOWN) : {
                 if (!s.makeMove(orient, slot))
                     mode = NONE;
                 if (orient >= State.pOrients[s.nextPiece])
@@ -107,13 +107,13 @@ public class TFrame extends JFrame implements KeyListener {
                 s.drawNext(slot, orient);
                 break;
             }
-            default:
+            default :
                 break;
             }
         }
-        case (NONE):
+        case (NONE) :
             break;
-        default:
+        default :
             System.out.println("unknown mode");
             break;
         }

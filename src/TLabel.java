@@ -219,7 +219,8 @@ public class TLabel {
         clear();
 
         // add antialiasing
-        RenderingHints hints = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        RenderingHints hints = new RenderingHints(RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON);
         hints.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         offscreen.addRenderingHints(hints);
 
@@ -309,7 +310,8 @@ public class TLabel {
         if (ws <= 1 && hs <= 1)
             pixel(x, y);
         else
-            offscreen.draw(new Arc2D.Double(xs - ws / 2, ys - hs / 2, ws, hs, startAngle, arcRange, Arc2D.OPEN));
+            offscreen.draw(
+                    new Arc2D.Double(xs - ws / 2, ys - hs / 2, ws, hs, startAngle, arcRange, Arc2D.OPEN));
 
     }
 
@@ -399,7 +401,8 @@ public class TLabel {
     // Draw an arrow of the appropriate scale, color, position
     public void Arrow(double x, double y, double w, double h, double Scale, Color Color) {
         rectangle(x, y, w, h, Color);
-        double[] xarray = { x + w / 2 - w / 10 + Scale * 1 / 10 * Math.sqrt(h * h * 25 + w * w) * Math.sqrt(3) / 3,
+        double[] xarray = {
+                x + w / 2 - w / 10 + Scale * 1 / 10 * Math.sqrt(h * h * 25 + w * w) * Math.sqrt(3) / 3,
                 x + w / 2 - w / 10, x + w / 2 - w / 10 };
         double[] yarray = { y, y + Scale * 1 / 10 * Math.sqrt(h * h * 25 + w * w) * Math.sqrt(2) / 2,
                 y - Scale * 1 / 10 * Math.sqrt(h * h * 25 + w * w) * Math.sqrt(2) / 2 };
@@ -503,7 +506,8 @@ public class TLabel {
         setPenColor(DEFAULT_PEN_COLOR);
     }
 
-    public void rectangle(double x, double y, double w, double h, Color c, boolean Border, Color BorderColor) {
+    public void rectangle(double x, double y, double w, double h, Color c, boolean Border,
+            Color BorderColor) {
 
         double[] xarray = { x - w / 2, x - w / 2, x + w / 2, x + w / 2 };
         double[] yarray = { y - h / 2, y + h / 2, y + h / 2, y - h / 2 };
@@ -543,12 +547,14 @@ public class TLabel {
 
     // Invert an image
     public BufferedImage invert(Image image) {
-        BufferedImage b1 = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_RGB);
+        BufferedImage b1 = new BufferedImage(image.getWidth(null), image.getHeight(null),
+                BufferedImage.TYPE_INT_RGB);
         Graphics bg = b1.getGraphics();
         bg.drawImage(image, 0, 0, null);
         bg.dispose();
 
-        BufferedImage b2 = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_RGB);
+        BufferedImage b2 = new BufferedImage(image.getWidth(null), image.getHeight(null),
+                BufferedImage.TYPE_INT_RGB);
         DataBuffer db1 = b1.getRaster().getDataBuffer();
         DataBuffer db2 = b2.getRaster().getDataBuffer();
 

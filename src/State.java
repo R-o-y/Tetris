@@ -36,17 +36,21 @@ public class State {
 
     // the next several arrays define the piece vocabulary in detail
     // width of the pieces [piece ID][orientation]
-    protected static int[][] pWidth = { { 2 }, { 1, 4 }, { 2, 3, 2, 3 }, { 2, 3, 2, 3 }, { 2, 3, 2, 3 }, { 3, 2 },
-            { 3, 2 } };
+    protected static int[][] pWidth = { { 2 }, { 1, 4 }, { 2, 3, 2, 3 }, { 2, 3, 2, 3 }, { 2, 3, 2, 3 },
+            { 3, 2 }, { 3, 2 } };
     // height of the pieces [piece ID][orientation]
-    private static int[][] pHeight = { { 2 }, { 4, 1 }, { 3, 2, 3, 2 }, { 3, 2, 3, 2 }, { 3, 2, 3, 2 }, { 2, 3 },
-            { 2, 3 } };
+    private static int[][] pHeight = { { 2 }, { 4, 1 }, { 3, 2, 3, 2 }, { 3, 2, 3, 2 }, { 3, 2, 3, 2 },
+            { 2, 3 }, { 2, 3 } };
     private static int[][][] pBottom = { { { 0, 0 } }, { { 0 }, { 0, 0, 0, 0 } },
-            { { 0, 0 }, { 0, 1, 1 }, { 2, 0 }, { 0, 0, 0 } }, { { 0, 0 }, { 0, 0, 0 }, { 0, 2 }, { 1, 1, 0 } },
-            { { 0, 1 }, { 1, 0, 1 }, { 1, 0 }, { 0, 0, 0 } }, { { 0, 0, 1 }, { 1, 0 } }, { { 1, 0, 0 }, { 0, 1 } } };
+            { { 0, 0 }, { 0, 1, 1 }, { 2, 0 }, { 0, 0, 0 } },
+            { { 0, 0 }, { 0, 0, 0 }, { 0, 2 }, { 1, 1, 0 } },
+            { { 0, 1 }, { 1, 0, 1 }, { 1, 0 }, { 0, 0, 0 } }, { { 0, 0, 1 }, { 1, 0 } },
+            { { 1, 0, 0 }, { 0, 1 } } };
     private static int[][][] pTop = { { { 2, 2 } }, { { 4 }, { 1, 1, 1, 1 } },
-            { { 3, 1 }, { 2, 2, 2 }, { 3, 3 }, { 1, 1, 2 } }, { { 1, 3 }, { 2, 1, 1 }, { 3, 3 }, { 2, 2, 2 } },
-            { { 3, 2 }, { 2, 2, 2 }, { 2, 3 }, { 1, 2, 1 } }, { { 1, 2, 2 }, { 3, 2 } }, { { 2, 2, 1 }, { 2, 3 } } };
+            { { 3, 1 }, { 2, 2, 2 }, { 3, 3 }, { 1, 1, 2 } },
+            { { 1, 3 }, { 2, 1, 1 }, { 3, 3 }, { 2, 2, 2 } },
+            { { 3, 2 }, { 2, 2, 2 }, { 2, 3 }, { 1, 2, 1 } }, { { 1, 2, 2 }, { 3, 2 } },
+            { { 2, 2, 1 }, { 2, 3 } } };
 
     // initialize legalMoves
     {
@@ -121,6 +125,7 @@ public class State {
     // constructor
     public State() {
         nextPiece = randomPiece();
+
     }
 
     // random integer, returns 0-6
@@ -163,7 +168,8 @@ public class State {
         for (int i = 0; i < pWidth[nextPiece][orient]; i++) {
 
             // from bottom to top of brick
-            for (int h = height + pBottom[nextPiece][orient][i]; h < height + pTop[nextPiece][orient][i]; h++) {
+            for (int h = height + pBottom[nextPiece][orient][i]; h < height
+                    + pTop[nextPiece][orient][i]; h++) {
                 field[h][i + slot] = turn;
             }
         }
