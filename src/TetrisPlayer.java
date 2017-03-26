@@ -77,6 +77,23 @@ public class TetrisPlayer {
         return maxColHeight * weight;
     }
 
+    private double numBlankBeneathHeuristic(State s, double weight) {
+    	int[] colHeights = s.getTop();
+    	
+    	int accumulatedUtility = 0;
+        for (int colIndex = 0; colIndex < colHeights.length; colIndex++) {
+            // count the number of blanks beneath
+        	int count = 0;
+        	for (int rowIndex = 0; rowIndex < colHeights[colIndex]; rowIndex++) {
+        		if (s.getField()[rowIndex][colIndex] == 0) {
+        			count++;
+        		}
+        		accumulatedUtility += count * weight;
+        	}
+        }
+        return accumulatedUtility;
+    }
+    
     private double numHolesHeuristic(State s, double weight) {
         boolean[][] breathable = getBreathable(s);
         int countHoles = 0;
@@ -90,6 +107,7 @@ public class TetrisPlayer {
         return weight * countHoles;
     }
 
+    // this method is to help calculate numHolesHeuristic
     private boolean[][] getBreathable(State s) {
         int[][] field = s.getField();
 
@@ -114,6 +132,7 @@ public class TetrisPlayer {
         return breathable;
     }
 
+    // this method is to help calculate numHolesHeuristic
     private void exploreFrom(boolean[][] breathable, int rowIndex, int colIndex) {
         int rowNum = breathable.length;
         int colNum = breathable[0].length;
