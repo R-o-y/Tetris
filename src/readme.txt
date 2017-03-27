@@ -14,15 +14,11 @@ is accessed by getField().  Zeros denote an empty square.  Other values denote
 the turn on which that square was placed.  NextPiece (accessed by getNextPiece)
 contains the ID (0-6) of the piece you are about to play.
 
-Moves are defined by two numbers: 
-1. the SLOT, the leftmost column of the piece 
-and
-2. the ORIENT, the orientation of the piece.  
-Legalmoves gives an nx2 int array containing the n legal moves.  
-A move can be made by specifying the two parameters as either 
-* 2 ints, 
-* an int array of length 2, 
-* or a single int specifying the row in the legalMoves array corresponding to the appropriate move.
+Moves are defined by two numbers: the SLOT, the leftmost column of the piece and
+the ORIENT, the orientation of the piece.  Legalmoves gives an nx2 int array
+containing the n legal moves.  A move can be made by specifying the two
+parameters as either 2 ints, an int array of length 2, or a single int
+specifying the row in the legalMoves array corresponding to the appropriate move.
 
 It also keeps track of the number of lines cleared - accessed by getRowsCleared().
 
