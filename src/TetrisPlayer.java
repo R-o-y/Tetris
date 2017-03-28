@@ -1,19 +1,20 @@
 import java.util.Arrays;
 
 public class TetrisPlayer {
-    double[] allWeights;
     double[] columnHeightHeuristicWeights;
     double[] colHeightDifferenceHeuristicWeights;
     double maxColHeightHeuristicWeight;
+    double maxHeightDifferenceHeuristicWeight;
     double numHolesHeuristicWeight;
+    double numTrapsHeuristicWeight;    
+    
     double rowClearedWeight;
     
     public TetrisPlayer(int colNum, double[] allWeights) {
-        this.allWeights = allWeights;
         columnHeightHeuristicWeights = Arrays.copyOfRange(allWeights, 0, colNum);
         colHeightDifferenceHeuristicWeights = Arrays.copyOfRange(allWeights, colNum, colNum + colNum - 1);
         maxColHeightHeuristicWeight = allWeights[colNum + colNum - 1];
-        numHolesHeuristicWeight = allWeights[colNum + colNum];
+        numTrapsHeuristicWeight = allWeights[colNum + colNum];
         rowClearedWeight = allWeights[colNum + colNum + 1];
     }
     
@@ -32,6 +33,9 @@ public class TetrisPlayer {
         return bestUtilityMoveIndex;
     }
     
+    /// calculate the utility of the input move, which equals to:
+    /// sum of all the Heuristic of the next state by this move + 
+    /// the number of rows cleared by this move
     private double calculateUtility(State s, int[][] legalMoves, int moveIndex) {
         State simulatedState = s.clone();
         int previousClearedCount = simulatedState.getRowsCleared();
@@ -40,12 +44,12 @@ public class TetrisPlayer {
         
         double accHeuristic = columnHeightHeuristic(simulatedState, columnHeightHeuristicWeights)
                 + colHeightDifferenceHeuristic(simulatedState, colHeightDifferenceHeuristicWeights)
-                + maxColHeightHeuristic(simulatedState, maxColHeightHeuristicWeight) + numHolesHeuristic(s, numHolesHeuristicWeight);
+                + maxColHeightHeuristic(simulatedState, maxColHeightHeuristicWeight) + numTrapsHeuristic(s, numTrapsHeuristicWeight);
 
         return accHeuristic + (newClearedCount - previousClearedCount) * rowClearedWeight;
     }
 
-    /// heuristic 1: column height for each column
+    /// Heuristic: sum of column height for each column
     private double columnHeightHeuristic(State s, double[] weights) {
         int[] colHeights = s.getTop();
 
@@ -56,7 +60,7 @@ public class TetrisPlayer {
         return accumulatedUtility;
     }
 
-    /// heuristic 2: the absolute value of the difference of the heights of adjacent column
+    /// Heuristic: sum of the absolute value of the difference of the heights of adjacent column
     private double colHeightDifferenceHeuristic(State s, double[] weights) {
         int[] colHeights = s.getTop();
 
@@ -67,7 +71,7 @@ public class TetrisPlayer {
         return accumulatedUtility;
     }
 
-    /// heuristic 3: the maximum column height 
+    /// Heuristic: the maximum column height 
     private double maxColHeightHeuristic(State s, double weight) {
         int[] colHeights = s.getTop();
 
@@ -80,8 +84,8 @@ public class TetrisPlayer {
         return maxColHeight * weight;
     }
 
-    /// heuristic 4: the total number of blank-beneath
-    /// definition of blank-beneath: a blank position where there is some full position above in the same column
+    /// Heuristic: the total number of holes
+    /// definition of "hole": a blank position where there is some full position above in the same column
     private double numBlankBeneathHeuristic(State s, double weight) {
     	int[] colHeights = s.getTop();
     	
@@ -98,10 +102,10 @@ public class TetrisPlayer {
         }
         return accumulatedUtility;
     }
-    
-    /// heuristic 5: the total number of wholes
-    /// definition of wholes: a blank position, from where there is no path to the top
-    private double numHolesHeuristic(State s, double weight) {
+
+    /// Heuristic: the total number of traps
+    /// definition of "trap": a blank position, from where there is no path to the top
+    private double numTrapsHeuristic(State s, double weight) {
         boolean[][] breathable = getBreathable(s);
         int countHoles = 0;
         for (int i = 0; i < breathable.length; i++) {
@@ -113,8 +117,23 @@ public class TetrisPlayer {
         }
         return weight * countHoles;
     }
+    
+    /// Heuristic: the difference between the maximum and the minimum height
+    private double maxHeightDefferenceHeuristic(State s, double weight) {
+        int[] colHeights = s.getTop();
+        int max = 0;
+        int min = 0;
+        for (int height : colHeights) {
+            if (height > max) {
+                max = height;
+            } else if (height < min) {
+                min = height;
+            }
+        }
+        return (max - min) * weight;
+    }
 
-    // this method is to help calculate numHolesHeuristic
+    // this method is to help calculate numTrapsHeuristic
     private boolean[][] getBreathable(State s) {
         int[][] field = s.getField();
 
@@ -139,7 +158,7 @@ public class TetrisPlayer {
         return breathable;
     }
 
-    // this method is to help calculate numHolesHeuristic
+    // this method is to help calculate numTrapsHeuristic
     private void exploreFrom(boolean[][] breathable, int rowIndex, int colIndex) {
         int rowNum = breathable.length;
         int colNum = breathable[0].length;
@@ -161,12 +180,12 @@ public class TetrisPlayer {
         }
     }
 
-    // this method is for testing purpose, to check whether all heuristics are calculated correctly
+    // this method is for testing purpose, to check whether all Heuristics are calculated correctly
     public void printHeuristics(State s) {
         System.out.println(columnHeightHeuristic(s, columnHeightHeuristicWeights));
         System.out.println(colHeightDifferenceHeuristic(s, colHeightDifferenceHeuristicWeights));
         System.out.println(maxColHeightHeuristic(s, maxColHeightHeuristicWeight));
-        System.out.println(numHolesHeuristic(s, numHolesHeuristicWeight));
+        System.out.println(numTrapsHeuristic(s, numTrapsHeuristicWeight));
         System.out.println();
     }
 }
