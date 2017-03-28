@@ -6,7 +6,9 @@ public class TetrisPlayer {
     double maxColHeightHeuristicWeight;
     double maxHeightDifferenceHeuristicWeight;
     double numHolesHeuristicWeight;
-    double numTrapsHeuristicWeight;    
+    double numTrapsHeuristicWeight;
+    double numHorzTransitionHeuristicWeight;
+    double numVertTransitionHeuristicWeight;
     
     double rowClearedWeight;
     
@@ -45,7 +47,6 @@ public class TetrisPlayer {
         double accHeuristic = columnHeightHeuristic(simulatedState, columnHeightHeuristicWeights)
                 + colHeightDifferenceHeuristic(simulatedState, colHeightDifferenceHeuristicWeights)
                 + maxColHeightHeuristic(simulatedState, maxColHeightHeuristicWeight) + numTrapsHeuristic(s, numTrapsHeuristicWeight);
-
         return accHeuristic + (newClearedCount - previousClearedCount) * rowClearedWeight;
     }
 
@@ -54,9 +55,8 @@ public class TetrisPlayer {
         int[] colHeights = s.getTop();
 
         int accumulatedUtility = 0;
-        for (int colIndex = 0; colIndex < weights.length; colIndex++) {
+        for (int colIndex = 0; colIndex < weights.length; colIndex++)
             accumulatedUtility += colHeights[colIndex] * weights[colIndex];
-        }
         return accumulatedUtility;
     }
 
@@ -65,9 +65,8 @@ public class TetrisPlayer {
         int[] colHeights = s.getTop();
 
         int accumulatedUtility = 0;
-        for (int colIndex = 0; colIndex < weights.length - 1; colIndex++) {
+        for (int colIndex = 0; colIndex < weights.length; colIndex++)
             accumulatedUtility += Math.abs(colHeights[colIndex] - colHeights[colIndex + 1]) * weights[colIndex];
-        }
         return accumulatedUtility;
     }
 
@@ -76,31 +75,26 @@ public class TetrisPlayer {
         int[] colHeights = s.getTop();
 
         int maxColHeight = 0;
-        for (int colIndex = 0; colIndex < colHeights.length; colIndex++) {
-            if (colHeights[colIndex] > maxColHeight) {
+        for (int colIndex = 0; colIndex < colHeights.length; colIndex++)
+            if (colHeights[colIndex] > maxColHeight)
                 maxColHeight = colHeights[colIndex];
-            }
-        }
         return maxColHeight * weight;
     }
 
     /// Heuristic: the total number of holes
     /// definition of "hole": a blank position where there is some full position above in the same column
-    private double numBlankBeneathHeuristic(State s, double weight) {
+    private double numHolesHeuristic(State s, double weight) {
     	int[] colHeights = s.getTop();
     	
-    	int accumulatedUtility = 0;
+    	int count = 0;
         for (int colIndex = 0; colIndex < colHeights.length; colIndex++) {
-            // count the number of blanks beneath
-        	int count = 0;
+            // count the number of holes in this column 	
         	for (int rowIndex = 0; rowIndex < colHeights[colIndex]; rowIndex++) {
-        		if (s.getField()[rowIndex][colIndex] == 0) {
-        			count++;
-        		}
-        		accumulatedUtility += count * weight;
+        		if (s.getField()[rowIndex][colIndex] == 0)
+        			count++;		
         	}
         }
-        return accumulatedUtility;
+        return count * weight;
     }
 
     /// Heuristic: the total number of traps
@@ -108,27 +102,63 @@ public class TetrisPlayer {
     private double numTrapsHeuristic(State s, double weight) {
         boolean[][] breathable = getBreathable(s);
         int countHoles = 0;
-        for (int i = 0; i < breathable.length; i++) {
-            for (int j = 0; j < breathable[i].length; j++) {
-                if (breathable[i][j] == false) {
+        for (int i = 0; i < breathable.length; i++)
+            for (int j = 0; j < breathable[i].length; j++)
+                if (breathable[i][j] == false)
                     countHoles++;
-                }
-            }
-        }
         return weight * countHoles;
+    }
+    
+    /// Heuristic: the number of horizontal full/blank transitions
+    /// wall is considered as full
+    private double numHorzTransitionHeuristic(State s, double weight) {
+        int count = 0;
+        int[][] field = s.getField();
+        for (int row = 0; row < field.length - 1; row++)
+            for (int col = -1; col < field[0].length; col++) {
+                if (col == -1) {  // left wall
+                    if (field[row][col + 1] == 0)
+                        count++;
+                }
+                else if (col == field[0].length - 1) {  // right wall
+                    if (field[row][col] == 0)
+                        count++;
+                }
+                else if (field[row][col] * field[row][col + 1] == 0 && 
+                         field[row][col] + field[row][col + 1] != 0)
+                    count++;
+            }
+        return count * weight;
+    }
+    
+    /// Heuristic: the number of vertical full/blank transitions
+    /// wall is considered as full
+    private double numVertTransitionHeuristic(State s, double weight) {
+        int count = 0;
+        int[][] field = s.getField();
+        for (int col = 0; col < field[0].length; col++)
+            for (int row = -1; row < field.length - 1; row++) {
+                if (row == -1) {  // left wall
+                    if (field[row + 1][col] == 0)
+                        count++;
+                }
+                else if (field[row][col] * field[row + 1][col] == 0 && 
+                         field[row][col] + field[row + 1][col] != 0)
+                    count++;
+            }
+        return count * weight;
     }
     
     /// Heuristic: the difference between the maximum and the minimum height
     private double maxHeightDefferenceHeuristic(State s, double weight) {
         int[] colHeights = s.getTop();
         int max = 0;
-        int min = 0;
+        int min = Integer.MAX_VALUE;
         for (int height : colHeights) {
-            if (height > max) {
+            if (height > max)
                 max = height;
-            } else if (height < min) {
+            else if (height < min)
                 min = height;
-            }
         }
         return (max - min) * weight;
     }
@@ -137,30 +167,24 @@ public class TetrisPlayer {
     private boolean[][] getBreathable(State s) {
         int[][] field = s.getField();
 
-        int rowNum = field.length;
+        int rowNum = field.length - 1;
         int colNum = field[0].length;
-        boolean[][] breathable = new boolean[rowNum][colNum]; // initially, all
-                                                              // false
+        boolean[][] breathable = new boolean[rowNum][colNum]; // initially, all false
 
         // wall is breathable by definition
-        for (int i = 0; i < rowNum; i++) {
-            for (int j = 0; j < colNum; j++) {
-                if (field[i][j] != 0) {
+        for (int i = 0; i < rowNum; i++)
+            for (int j = 0; j < colNum; j++)
+                if (field[i][j] != 0)
                     breathable[i][j] = true;
-                }
-            }
-        }
-        for (int i = 0; i < colNum; i++) {
-            if (field[rowNum - 1][i] == 0) {
+        for (int i = 0; i < colNum; i++)
+            if (field[rowNum - 1][i] == 0)
                 exploreFrom(breathable, rowNum - 1, i);
-            }
-        }
         return breathable;
     }
 
     // this method is to help calculate numTrapsHeuristic
     private void exploreFrom(boolean[][] breathable, int rowIndex, int colIndex) {
-        int rowNum = breathable.length;
+        int rowNum = breathable.length - 1;
         int colNum = breathable[0].length;
         if (rowIndex - 1 >= 0 && !breathable[rowIndex - 1][colIndex]) {
             breathable[rowIndex - 1][colIndex] = true;
@@ -182,10 +206,17 @@ public class TetrisPlayer {
 
     // this method is for testing purpose, to check whether all Heuristics are calculated correctly
     public void printHeuristics(State s) {
-        System.out.println(columnHeightHeuristic(s, columnHeightHeuristicWeights));
-        System.out.println(colHeightDifferenceHeuristic(s, colHeightDifferenceHeuristicWeights));
-        System.out.println(maxColHeightHeuristic(s, maxColHeightHeuristicWeight));
-        System.out.println(numTrapsHeuristic(s, numTrapsHeuristicWeight));
+        System.out.println(columnHeightHeuristic(s, new double[]{1,1,1,1,1,1,1,1,1,1}));
+        System.out.println(colHeightDifferenceHeuristic(s, new double[]{1,1,1,1,1,1,1,1,1}));
+        
+        System.out.println(maxColHeightHeuristic(s, 1));
+        System.out.println(maxHeightDefferenceHeuristic(s, 1));
+        
+        System.out.println(numHolesHeuristic(s, 1));
+        System.out.println(numTrapsHeuristic(s, 1));
+        
+        System.out.println(numHorzTransitionHeuristic(s, 1));
+        System.out.println(numVertTransitionHeuristic(s, 1));
         System.out.println();
     }
 }
