@@ -2,11 +2,11 @@
 public class PlayerSkeleton {
 
     static double[] allWeights = { 
-            -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
-            -1, -1, -1, -1, -1, -1, -1, -1, -1, 
-            -1, 
-            -1,
-            1
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+        -1, 
+        -1,
+        1
     };
 
     public static void main(String[] args) {
