@@ -45,6 +45,7 @@ public class TetrisPlayer {
         return accHeuristic + (newClearedCount - previousClearedCount) * rowClearedWeight;
     }
 
+    /// heuristic 1: column height for each column
     private double columnHeightHeuristic(State s, double[] weights) {
         int[] colHeights = s.getTop();
 
@@ -55,6 +56,7 @@ public class TetrisPlayer {
         return accumulatedUtility;
     }
 
+    /// heuristic 2: the absolute value of the difference of the heights of adjacent column
     private double colHeightDifferenceHeuristic(State s, double[] weights) {
         int[] colHeights = s.getTop();
 
@@ -65,6 +67,7 @@ public class TetrisPlayer {
         return accumulatedUtility;
     }
 
+    /// heuristic 3: the maximum column height 
     private double maxColHeightHeuristic(State s, double weight) {
         int[] colHeights = s.getTop();
 
@@ -77,6 +80,8 @@ public class TetrisPlayer {
         return maxColHeight * weight;
     }
 
+    /// heuristic 4: the total number of blank-beneath
+    /// definition of blank-beneath: a blank position where there is some full position above in the same column
     private double numBlankBeneathHeuristic(State s, double weight) {
     	int[] colHeights = s.getTop();
     	
@@ -94,6 +99,8 @@ public class TetrisPlayer {
         return accumulatedUtility;
     }
     
+    /// heuristic 5: the total number of wholes
+    /// definition of wholes: a blank position, from where there is no path to the top
     private double numHolesHeuristic(State s, double weight) {
         boolean[][] breathable = getBreathable(s);
         int countHoles = 0;
