@@ -6,3 +6,5 @@
 /Evaluator.class
 /FeatureAnalyzer.class
 /NextState.class
+/Learner.class
+/Chromosome.class
