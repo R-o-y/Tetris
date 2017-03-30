@@ -17,6 +17,11 @@ public class PlayerSkeleton {
             s.makeMove(p.pickMove(s, s.legalMoves()));
             s.draw();
             s.drawNext(0, 0);
+//            double[] v = FeatureUtil.getFeatureVector(s);
+//            for (double i : v) {
+//            	System.out.print(i + " ");
+//            }
+//            System.out.println();
             try {
                 Thread.sleep(30);
             } catch (InterruptedException e) {
