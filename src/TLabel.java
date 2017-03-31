@@ -24,7 +24,7 @@ import java.awt.image.DataBuffer;
 import javax.swing.*;
 
 public class TLabel {
-    private static final long serialVersionUID = 1L;
+//    private static final long serialVersionUID = 1L;
 
     public JLabel draw;
 
@@ -556,9 +556,8 @@ public class TLabel {
             db2.setElem(j, db1.getElem(i));
 
         }
-        for (int i = db1.getSize() - 1, j = 0; i >= 0; --i, j++) {
+        for (int i = db1.getSize() - 1; i >= 0; --i) {
             db1.setElem(i, db1.getElem(i));
-
         }
         return b2;
     }

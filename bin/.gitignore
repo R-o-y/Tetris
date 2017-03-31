@@ -1,5 +1,8 @@
+/FeatureUtil.class
+/GeneticTrainer.class
 /PlayerSkeleton.class
 /State.class
 /TFrame.class
 /TLabel.class
-/readme.txt
+/TetrisFitnessFunction.class
+/TetrisPlayer.class

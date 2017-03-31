@@ -124,7 +124,6 @@ public class TFrame extends JFrame implements KeyListener {
     }
 
     public void keyTyped(KeyEvent e) {
-
     }
 
     public void save(String filename) {
@@ -152,6 +151,5 @@ public class TFrame extends JFrame implements KeyListener {
         s.draw();
         s.drawNext(0, 0);
         // t.save("picture.png");
-
     }
 }
