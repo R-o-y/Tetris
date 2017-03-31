@@ -17,7 +17,7 @@ public class GeneticTrainer {
         
         Configuration rootConf = new DefaultConfiguration();
         
-        Gene[] sampleGenes = new Gene[26];
+        Gene[] sampleGenes = new Gene[9];
         
         for (int i  = 0; i < sampleGenes.length; i++) {
             sampleGenes[i] = new DoubleGene(rootConf, -1, 1);
@@ -41,10 +41,11 @@ public class GeneticTrainer {
                 System.out.print(weight + ", ");
             }
             System.out.println();
+            System.out.println(new TetrisFitnessFunction().evaluate(bestSolutionSoFar));
+            System.out.println(bestSolutionSoFar.getFitnessValue());
             System.out.println(bestSolutionSoFar.getFitnessValueDirectly());
             
             System.out.println();
         }
-
     }
 }

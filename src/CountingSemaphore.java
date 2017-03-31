@@ -1,20 +1,25 @@
 
 public class CountingSemaphore {
-    private int signals = 0;
+
+    private int count;
+    
+    public CountingSemaphore(int initialCount) {
+        count = initialCount;
+    }
     
     public int getCount() {
-        return signals;
+        return count;
     }
     
-    public synchronized void take() {
-        signals++;
-        notify();
-    }
-    
-    public synchronized void release() throws InterruptedException {
-        while (signals == 0) {
+    public synchronized void take() throws InterruptedException {
+        while (count == 0) {
             wait();
         }
-        signals--;
+        count--;
+    }
+    
+    public synchronized void release() {
+        count++;
+        notify();
     }
 }
