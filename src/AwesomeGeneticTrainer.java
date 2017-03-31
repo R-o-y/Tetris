@@ -1,15 +1,22 @@
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+
 import org.jgap.Chromosome;
 import org.jgap.Configuration;
 import org.jgap.Gene;
 import org.jgap.Genotype;
+import org.jgap.IChromosome;
 import org.jgap.InvalidConfigurationException;
 import org.jgap.Population;
-import org.jgap.audit.EvolutionMonitor;
-import org.jgap.audit.IEvolutionMonitor;
 import org.jgap.event.GeneticEvent;
 import org.jgap.event.GeneticEventListener;
 import org.jgap.impl.DefaultConfiguration;
 import org.jgap.impl.DoubleGene;
+import org.jgap.impl.FittestPopulationMerger;
+import org.jgap.impl.GABreeder;
 import org.jgap.impl.job.SimplePopulationSplitter;
 
 // Multi-threaded version of GeneticTrainer
@@ -52,7 +59,10 @@ public class AwesomeGeneticTrainer {
             // Merge populations according to fitness
             Population p = splitMerge(populations);
             
-            // Blah blah
+            for (int j = 0; j < NUM_THREADS; j++){
+                populations[j] = p;
+            }
+            updateLog(p.toChromosomes());
         }
     }
     
@@ -95,10 +105,22 @@ public class AwesomeGeneticTrainer {
             
             // Listen for evolution limit
             GeneticEventListener listener = new GeneticEventListener() {
-
-                @Override
-                public void geneticEventFired(GeneticEvent arg0) {
-                    
+                public void geneticEventFired(GeneticEvent event) {
+                    GABreeder breeder = (GABreeder) event.getSource();
+                    int evolutionNo = breeder.getLastConfiguration().getGenerationNr();
+                    if (evolutionNo > MAX_EVOLUTION_PERIOD) {
+                        thread.interrupt();
+                        Population population = breeder.getLastPopulation();
+                        System.out.println(thread.getName() + " has completed " + evolutionNo + " evolution periods.");
+                        try {
+                            mutex.take();
+                            newPopulations[Integer.parseInt(config.getId())] = population;
+                            mutex.release();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        cs.release();
+                    } 
                 }
                 
             };
@@ -115,6 +137,35 @@ public class AwesomeGeneticTrainer {
     }
     
     public static Population splitMerge(Population[] population) {
-        return population[0];
+        FittestPopulationMerger populationMerger = new FittestPopulationMerger();
+        Population p = population[0];
+        for (int i = 1; i < NUM_THREADS; i++){
+                p = populationMerger.mergePopulations(p, population[i], POPULATION_SIZE);
+        }
+        return p;
+    }
+    
+    public static void updateLog(IChromosome[] chromosomes) throws IOException {
+        clearLog();
+        PrintWriter out = new PrintWriter(new BufferedWriter(
+                        new FileWriter("log.txt", true)));
+        for (int j = 0; j < chromosomes.length; j++) {
+                String s = "";
+                IChromosome c = chromosomes[j];
+                Gene[] gene_array = c.getGenes();
+                for (int k = 0; k < gene_array.length; k++) {
+                        Gene g = gene_array[k];
+                        s += (double) g.getAllele() + " ";
+                }
+                s += c.getFitnessValue();
+                out.println(s);
+        }
+        out.close();
+    }
+
+    public static void clearLog() throws FileNotFoundException {
+        PrintWriter out = new PrintWriter("log.txt");
+        out.print("");
+        out.close();
     }
 }
