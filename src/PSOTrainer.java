@@ -19,22 +19,20 @@ public class PSOTrainer extends FitnessFunction {
     
     
     public static void main(String[] args) {
-        Swarm swarm = new Swarm(80
+        Swarm swarm = new Swarm(800
                 , new TetrisParticle()
                 , new PSOTrainer());
         // Set position (and velocity) constraints. 
         // i.e.: where to look for solutions
-        swarm.setMaxPosition(-10);
-        swarm.setMinPosition(10);
+        swarm.setMaxPosition(1);
+        swarm.setMinPosition(-1);
+        swarm.setInertia(0.38);
         // Optimize a few times
-        for( int i = 0; i < 18000; i++ ) {
+        for( int i = 0; i < 180000; i++ ) {
             swarm.evolve();
             System.out.println(swarm.toStringStats());
         }
     }
-    
-    
-    
     
    
     

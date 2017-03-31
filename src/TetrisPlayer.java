@@ -56,6 +56,7 @@ public class TetrisPlayer {
                 + numTrapsHeuristic(s, numTrapsHeuristicWeight) 
                 + numHorzTransitionHeuristic(simulatedState, numHorzTransitionHeuristicWeight)
                 + numVertTransitionHeuristic(simulatedState, numVertTransitionHeuristicWeight);
+        
         return accHeuristic + (newClearedCount - previousClearedCount) * rowClearedWeight;
     }
 
