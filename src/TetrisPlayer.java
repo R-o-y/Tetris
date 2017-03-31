@@ -1,8 +1,8 @@
 import java.util.Arrays;
 
 public class TetrisPlayer {
-    double[] columnHeightHeuristicWeights;
-    double[] colHeightDifferenceHeuristicWeights;
+    double columnHeightHeuristicWeight;
+    double colHeightDifferenceHeuristicWeight;
     double maxColHeightHeuristicWeight;
     double maxHeightDifferenceHeuristicWeight;
     double numHolesHeuristicWeight;
@@ -13,15 +13,15 @@ public class TetrisPlayer {
     double rowClearedWeight;
     
     public TetrisPlayer(int colNum, double[] allWeights) {
-        columnHeightHeuristicWeights = Arrays.copyOfRange(allWeights, 0, colNum);
-        colHeightDifferenceHeuristicWeights = Arrays.copyOfRange(allWeights, colNum, colNum + colNum - 1);
-        maxColHeightHeuristicWeight = allWeights[colNum + colNum - 1];
-        maxHeightDifferenceHeuristicWeight = allWeights[colNum + colNum];
-        numHolesHeuristicWeight = allWeights[colNum + colNum + 1];
-        numTrapsHeuristicWeight = allWeights[colNum + colNum + 2];
-        numHorzTransitionHeuristicWeight = allWeights[colNum + colNum + 3];
-        numVertTransitionHeuristicWeight = allWeights[colNum + colNum + 4];
-        rowClearedWeight = allWeights[colNum + colNum + 5];
+        columnHeightHeuristicWeight = allWeights[0];
+        colHeightDifferenceHeuristicWeight = allWeights[1];
+        maxColHeightHeuristicWeight = allWeights[2];
+        maxHeightDifferenceHeuristicWeight = allWeights[3];
+        numHolesHeuristicWeight = allWeights[4];
+        numTrapsHeuristicWeight = allWeights[5];
+        numHorzTransitionHeuristicWeight = allWeights[6];
+        numVertTransitionHeuristicWeight = allWeights[7];
+        rowClearedWeight = allWeights[8];
     }
     
     // implement this function to have a working system
@@ -48,8 +48,9 @@ public class TetrisPlayer {
         simulatedState.makeMove(moveIndex);
         int newClearedCount = simulatedState.getRowsCleared();
         
-        double accHeuristic = columnHeightHeuristic(simulatedState, columnHeightHeuristicWeights)
-                + colHeightDifferenceHeuristic(simulatedState, colHeightDifferenceHeuristicWeights)
+        double accHeuristic = 
+                columnHeightHeuristic(simulatedState, columnHeightHeuristicWeight)
+                + colHeightDifferenceHeuristic(simulatedState, colHeightDifferenceHeuristicWeight)
                 + maxColHeightHeuristic(simulatedState, maxColHeightHeuristicWeight) 
                 + maxHeightDefferenceHeuristic(simulatedState, maxHeightDifferenceHeuristicWeight)
                 + numHolesHeuristic(simulatedState, numHolesHeuristicWeight)
@@ -61,23 +62,23 @@ public class TetrisPlayer {
     }
 
     /// Heuristic: sum of column height for each column
-    private double columnHeightHeuristic(State s, double[] weights) {
+    private double columnHeightHeuristic(State s, double weight) {
         int[] colHeights = s.getTop();
 
         int accumulatedUtility = 0;
-        for (int colIndex = 0; colIndex < weights.length; colIndex++)
-            accumulatedUtility += colHeights[colIndex] * weights[colIndex];
-        return accumulatedUtility;
+        for (int colIndex = 0; colIndex < colHeights.length; colIndex++)
+            accumulatedUtility += colHeights[colIndex];
+        return accumulatedUtility / colHeights.length * weight;
     }
 
     /// Heuristic: sum of the absolute value of the difference of the heights of adjacent column
-    private double colHeightDifferenceHeuristic(State s, double[] weights) {
+    private double colHeightDifferenceHeuristic(State s, double weight) {
         int[] colHeights = s.getTop();
 
         int accumulatedUtility = 0;
-        for (int colIndex = 0; colIndex < weights.length; colIndex++)
-            accumulatedUtility += Math.abs(colHeights[colIndex] - colHeights[colIndex + 1]) * weights[colIndex];
-        return accumulatedUtility;
+        for (int colIndex = 0; colIndex < colHeights.length - 1; colIndex++)
+            accumulatedUtility += Math.abs(colHeights[colIndex] - colHeights[colIndex + 1]);
+        return accumulatedUtility / (colHeights.length - 1) * weight;
     }
 
     /// Heuristic: the maximum column height 
@@ -215,18 +216,18 @@ public class TetrisPlayer {
     }
 
     // this method is for testing purpose, to check whether all Heuristics are calculated correctly
-    public void printHeuristics(State s) {
-        System.out.println(columnHeightHeuristic(s, new double[]{1,1,1,1,1,1,1,1,1,1}));
-        System.out.println(colHeightDifferenceHeuristic(s, new double[]{1,1,1,1,1,1,1,1,1}));
-        
-        System.out.println(maxColHeightHeuristic(s, 1));
-        System.out.println(maxHeightDefferenceHeuristic(s, 1));
-        
-        System.out.println(numHolesHeuristic(s, 1));
-        System.out.println(numTrapsHeuristic(s, 1));
-        
-        System.out.println(numHorzTransitionHeuristic(s, 1));
-        System.out.println(numVertTransitionHeuristic(s, 1));
-        System.out.println();
-    }
+//    public void printHeuristics(State s) {
+//        System.out.println(columnHeightHeuristic(s, new double[]{1,1,1,1,1,1,1,1,1,1}));
+//        System.out.println(colHeightDifferenceHeuristic(s, new double[]{1,1,1,1,1,1,1,1,1}));
+//        
+//        System.out.println(maxColHeightHeuristic(s, 1));
+//        System.out.println(maxHeightDefferenceHeuristic(s, 1));
+//        
+//        System.out.println(numHolesHeuristic(s, 1));
+//        System.out.println(numTrapsHeuristic(s, 1));
+//        
+//        System.out.println(numHorzTransitionHeuristic(s, 1));
+//        System.out.println(numVertTransitionHeuristic(s, 1));
+//        System.out.println();
+//    }
 }
