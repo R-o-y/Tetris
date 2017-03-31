@@ -17,14 +17,16 @@ public class PSOTrainer extends FitnessFunction {
 
     // main training method
     public static void main(String[] args) {
-        Swarm swarm = new Swarm(800
-                , new TetrisParticle()
-                , new PSOTrainer());
+        Swarm swarm = new Swarm(800,  // number of particles 
+                                new TetrisParticle(),  // class representing a particle
+                                new PSOTrainer());  // class that calculates fitness function for particles
+        
         // Set position (and velocity) constraints. 
         // i.e.: where to look for solutions
         swarm.setMaxPosition(1);
         swarm.setMinPosition(-1);
-        // Optimize a few times
+        
+        // main loop
         for( int i = 0; i < 180000; i++ ) {
             swarm.evolve();
             System.out.println(swarm.toStringStats());
