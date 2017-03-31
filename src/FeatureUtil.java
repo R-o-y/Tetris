@@ -1,5 +1,6 @@
 
 public class FeatureUtil {
+
 	public static double[] getFeatureVector(State s) {
 		double[] featureVector = joinArray(
 				columnHeightHeuristic(s), 
