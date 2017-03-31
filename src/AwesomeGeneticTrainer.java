@@ -32,7 +32,7 @@ public class AwesomeGeneticTrainer {
         
         // Set population size, fitness functions and sample chromosome
         rootConf.setSampleChromosome(sampleChromosome);
-        rootConf.setPopulationSize(POPULATION_SIZE);
+        rootConf.setPopulationSize(POPULATION_SIZE * NUM_THREADS);
         rootConf.setFitnessFunction(new TetrisFitnessFunction());
         
         // Generate random genotype (initial chromosome population) according to configuration
