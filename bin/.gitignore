@@ -1,8 +1,2 @@
-/FeatureUtil.class
-/GeneticTrainer.class
-/PlayerSkeleton.class
-/State.class
-/TFrame.class
-/TLabel.class
-/TetrisFitnessFunction.class
-/TetrisPlayer.class
+/GeneticTrainerMT.class
+/AwesomeGeneticTrainer.class

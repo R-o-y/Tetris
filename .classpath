@@ -2,6 +2,10 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
-	<classpathentry kind="lib" path="C:/Users/luoyuyang/Desktop/GENETIC TETRIS/GameOfTetris/lib/jgap.jar"/>
+	<classpathentry kind="lib" path="/Users/edmundmok/Desktop/school/CS3243/asdasd/CS3243-Game-of-Tetris/GameOfTetris/lib/commons-cli-1.2.jar"/>
+	<classpathentry kind="lib" path="/Users/edmundmok/Desktop/school/CS3243/asdasd/CS3243-Game-of-Tetris/GameOfTetris/lib/jcgrid.jar"/>
+	<classpathentry kind="lib" path="/Users/edmundmok/Desktop/school/CS3243/asdasd/CS3243-Game-of-Tetris/GameOfTetris/lib/jgap.jar"/>
+	<classpathentry kind="lib" path="/Users/edmundmok/Desktop/school/CS3243/asdasd/CS3243-Game-of-Tetris/GameOfTetris/lib/log4j.jar"/>
+	<classpathentry kind="lib" path="/Users/edmundmok/Desktop/school/CS3243/asdasd/CS3243-Game-of-Tetris/GameOfTetris/lib/org.jenetics-3.4.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
