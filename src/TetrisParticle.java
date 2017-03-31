@@ -6,6 +6,6 @@ import net.sourceforge.jswarm_pso.Particle;
  */
 public class TetrisParticle extends Particle {
     public TetrisParticle() {
-        super(26);  // The input number is the dimension of the weight vector
+        super(9);  // The input number is the dimension of the weight vector
     }
 }
