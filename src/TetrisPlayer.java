@@ -16,8 +16,12 @@ public class TetrisPlayer {
         columnHeightHeuristicWeights = Arrays.copyOfRange(allWeights, 0, colNum);
         colHeightDifferenceHeuristicWeights = Arrays.copyOfRange(allWeights, colNum, colNum + colNum - 1);
         maxColHeightHeuristicWeight = allWeights[colNum + colNum - 1];
-        numTrapsHeuristicWeight = allWeights[colNum + colNum];
-        rowClearedWeight = allWeights[colNum + colNum + 1];
+        maxHeightDifferenceHeuristicWeight = allWeights[colNum + colNum];
+        numHolesHeuristicWeight = allWeights[colNum + colNum + 1];
+        numTrapsHeuristicWeight = allWeights[colNum + colNum + 2];
+        numHorzTransitionHeuristicWeight = allWeights[colNum + colNum + 3];
+        numVertTransitionHeuristicWeight = allWeights[colNum + colNum + 4];
+        rowClearedWeight = allWeights[colNum + colNum + 5];
     }
     
     // implement this function to have a working system
@@ -46,7 +50,12 @@ public class TetrisPlayer {
         
         double accHeuristic = columnHeightHeuristic(simulatedState, columnHeightHeuristicWeights)
                 + colHeightDifferenceHeuristic(simulatedState, colHeightDifferenceHeuristicWeights)
-                + maxColHeightHeuristic(simulatedState, maxColHeightHeuristicWeight) + numTrapsHeuristic(s, numTrapsHeuristicWeight);
+                + maxColHeightHeuristic(simulatedState, maxColHeightHeuristicWeight) 
+                + maxHeightDefferenceHeuristic(simulatedState, maxHeightDifferenceHeuristicWeight)
+                + numHolesHeuristic(simulatedState, numHolesHeuristicWeight)
+                + numTrapsHeuristic(s, numTrapsHeuristicWeight) 
+                + numHorzTransitionHeuristic(simulatedState, numHorzTransitionHeuristicWeight)
+                + numVertTransitionHeuristic(simulatedState, numVertTransitionHeuristicWeight);
         return accHeuristic + (newClearedCount - previousClearedCount) * rowClearedWeight;
     }
 
