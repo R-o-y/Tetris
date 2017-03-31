@@ -1,8 +1,7 @@
-import java.util.Arrays;
 
 public class TetrisPlayer {
-    double columnHeightHeuristicWeight;
-    double colHeightDifferenceHeuristicWeight;
+    double avgColumnHeightHeuristicWeight;
+    double avgColHeightDifferenceHeuristicWeight;
     double maxColHeightHeuristicWeight;
     double maxHeightDifferenceHeuristicWeight;
     double numHolesHeuristicWeight;
@@ -13,14 +12,15 @@ public class TetrisPlayer {
     double rowClearedWeight;
     
     public TetrisPlayer(int colNum, double[] allWeights) {
-        columnHeightHeuristicWeight = allWeights[0];
-        colHeightDifferenceHeuristicWeight = allWeights[1];
+        avgColumnHeightHeuristicWeight = allWeights[0];
+        avgColHeightDifferenceHeuristicWeight = allWeights[1];
         maxColHeightHeuristicWeight = allWeights[2];
         maxHeightDifferenceHeuristicWeight = allWeights[3];
         numHolesHeuristicWeight = allWeights[4];
         numTrapsHeuristicWeight = allWeights[5];
         numHorzTransitionHeuristicWeight = allWeights[6];
         numVertTransitionHeuristicWeight = allWeights[7];
+        
         rowClearedWeight = allWeights[8];
     }
     
@@ -49,8 +49,8 @@ public class TetrisPlayer {
         int newClearedCount = simulatedState.getRowsCleared();
         
         double accHeuristic = 
-                columnHeightHeuristic(simulatedState, columnHeightHeuristicWeight)
-                + colHeightDifferenceHeuristic(simulatedState, colHeightDifferenceHeuristicWeight)
+                avgColumnHeightHeuristic(simulatedState, avgColumnHeightHeuristicWeight)
+                + avgColHeightDifferenceHeuristic(simulatedState, avgColHeightDifferenceHeuristicWeight)
                 + maxColHeightHeuristic(simulatedState, maxColHeightHeuristicWeight) 
                 + maxHeightDefferenceHeuristic(simulatedState, maxHeightDifferenceHeuristicWeight)
                 + numHolesHeuristic(simulatedState, numHolesHeuristicWeight)
@@ -62,7 +62,7 @@ public class TetrisPlayer {
     }
 
     /// Heuristic: sum of column height for each column
-    private double columnHeightHeuristic(State s, double weight) {
+    private double avgColumnHeightHeuristic(State s, double weight) {
         int[] colHeights = s.getTop();
 
         int accumulatedUtility = 0;
@@ -72,7 +72,7 @@ public class TetrisPlayer {
     }
 
     /// Heuristic: sum of the absolute value of the difference of the heights of adjacent column
-    private double colHeightDifferenceHeuristic(State s, double weight) {
+    private double avgColHeightDifferenceHeuristic(State s, double weight) {
         int[] colHeights = s.getTop();
 
         int accumulatedUtility = 0;
@@ -216,18 +216,18 @@ public class TetrisPlayer {
     }
 
     // this method is for testing purpose, to check whether all Heuristics are calculated correctly
-//    public void printHeuristics(State s) {
-//        System.out.println(columnHeightHeuristic(s, new double[]{1,1,1,1,1,1,1,1,1,1}));
-//        System.out.println(colHeightDifferenceHeuristic(s, new double[]{1,1,1,1,1,1,1,1,1}));
-//        
-//        System.out.println(maxColHeightHeuristic(s, 1));
-//        System.out.println(maxHeightDefferenceHeuristic(s, 1));
-//        
-//        System.out.println(numHolesHeuristic(s, 1));
-//        System.out.println(numTrapsHeuristic(s, 1));
-//        
-//        System.out.println(numHorzTransitionHeuristic(s, 1));
-//        System.out.println(numVertTransitionHeuristic(s, 1));
-//        System.out.println();
-//    }
+    public void printHeuristics(State s) {
+        System.out.println(avgColumnHeightHeuristic(s, 1));
+        System.out.println(avgColHeightDifferenceHeuristic(s, 1));
+        
+        System.out.println(maxColHeightHeuristic(s, 1));
+        System.out.println(maxHeightDefferenceHeuristic(s, 1));
+        
+        System.out.println(numHolesHeuristic(s, 1));
+        System.out.println(numTrapsHeuristic(s, 1));
+        
+        System.out.println(numHorzTransitionHeuristic(s, 1));
+        System.out.println(numVertTransitionHeuristic(s, 1));
+        System.out.println();
+    }
 }

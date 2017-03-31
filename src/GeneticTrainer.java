@@ -47,6 +47,5 @@ public class GeneticTrainer {
             
             System.out.println();
         }
-
     }
 }
