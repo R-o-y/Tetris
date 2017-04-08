@@ -34,7 +34,7 @@ public class PlayerTrainer {
     // For future runs, have chromosomes manually retrieved from log.txt.
     //
     public static final int NUM_THREADS = 4;
-    public static final int MAX_ALLOWED_EVOLUTIONS = 1; // 2;
+    public static final int MAX_ALLOWED_EVOLUTIONS = 1;
     public static final int POPULATION_SIZE = 100;
 
     public static void main(String[] args) throws Exception {
