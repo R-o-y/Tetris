@@ -32,7 +32,7 @@ public class PlayerTrainerMT {
 
 	public static final int NUM_THREADS = 4; // 4;
 	public static final int MAX_EVOLUTION_PERIOD = 1; //40;
-	public static final int MAX_EVOLUTION_CYCLES = 1; //5;
+	public static final int MAX_EVOLUTION_CYCLES = 6; //5;
 	public static final int POPULATION_SIZE = 100;
 
 	public static void main(String[] args) throws Exception {
@@ -54,11 +54,7 @@ public class PlayerTrainerMT {
 		rootConf.setSampleChromosome(sampleChromosome);
 		rootConf.setPopulationSize(POPULATION_SIZE * NUM_THREADS);
 		rootConf.setFitnessFunction(new PlayerFitnessFunction());
-		//rootConf.setFitnessFunction(new TestFitnessFunction());
-		
-		
-		
-		
+
 		
 		
         BufferedReader in = new BufferedReader(new FileReader("log.txt"));
@@ -127,8 +123,7 @@ public class PlayerTrainerMT {
 	}
 	
 	public static Population[] megaEvolve(Population[] populations) throws InvalidConfigurationException{
-		
-		CountingSemaphore cs = new CountingSemaphore();
+
 		Mutex mutex = new Mutex();
 		Population[] newPopulations = new Population[NUM_THREADS];
 		
@@ -177,7 +172,6 @@ public class PlayerTrainerMT {
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
-			            cs.take();
 			        } 
 			    }
 		    };
@@ -187,8 +181,6 @@ public class PlayerTrainerMT {
 		    ts.add(t1);
 		    t1.start();
 		}
-		
-//		while (cs.getCount() < NUM_THREADS);
 	
         try {
             for (Thread t: ts) {

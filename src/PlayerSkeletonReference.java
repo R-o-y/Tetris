@@ -23,17 +23,17 @@ public class PlayerSkeletonReference {
         ForkJoinPool executorService = new ForkJoinPool();
         PlayerSkeletonReference p = new PlayerSkeletonReference(executorService);
 
-        new TFrame(s);
+//        new TFrame(s);
         try {
             while (!s.hasLost()) {
                 s.makeMove(p.pickMove(s, s.legalMoves()));
-                s.draw();
-                s.drawNext(0, 0);
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+//                s.draw();
+//                s.drawNext(0, 0);
+//                try {
+//                    Thread.sleep(1);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -152,11 +152,11 @@ public class PlayerSkeletonOneLayer {
         // Evaluate the state given features to be tested and weights
 
         double h =
-            /*-heightSum(state) * HEIGHT_SUM_WEIGHT + */
-            -numHoles(state) * NUM_HOLES_WEIGHT + numRowsCleared(state) * COMPLETE_LINES_WEIGHT
-                + -heightVariationSum(state) * HEIGHT_VAR_WEIGHT + lostStateValue(state) * LOST_WEIGHT
-                + -maxHeight(state) * MAX_HEIGHT_WEIGHT + -pitDepthValue(state) * PIT_DEPTH_WEIGHT
-                + -meanHeightDiffValue(state) * MEAN_HEIGHT_DIFF_WEIGHT;
+                /*-heightSum(state) * HEIGHT_SUM_WEIGHT + */
+                -numHoles(state) * NUM_HOLES_WEIGHT + numRowsCleared(state) * COMPLETE_LINES_WEIGHT
+                        + -heightVariationSum(state) * HEIGHT_VAR_WEIGHT + lostStateValue(state) * LOST_WEIGHT
+                        + -maxHeight(state) * MAX_HEIGHT_WEIGHT + -pitDepthValue(state) * PIT_DEPTH_WEIGHT
+                        + -meanHeightDiffValue(state) * MEAN_HEIGHT_DIFF_WEIGHT;
         return h;
     }
 
@@ -283,63 +283,34 @@ public class PlayerSkeletonOneLayer {
 
     public static void main(String[] args) {
 
-    	for (int k = 0; k < 8; k++) {
-    		
+        for (int k = 0; k < 8; k++) {
+            State s = new State();
+            double[] weights = {
 
-    	
-        State s = new State();
-        // new TFrame(s);
-        double[] weights =
-            {
-            		
-            		
-            		
-            		
-            		
-            		
-//            		1.7851855342334024, 
-//            		1.4138726176225629, 
-//            		0.3567297944529728, 
-//            		0.6249287636118577, 
-//            		0.051962392158941606,
-//            		0.52385888919136, 
-//            		0.12090744319379954
-            		
-            		
-            		1.79394021632064,
-            		0.8540159264036973,
-            		0.22641768193780543,
-            		1.9894427269412354,
-            		0.031659294433572516,
-            		0.5576040811090157,
-            		0.5644690218386381
-            		
-            
-            
-            
-            
-            
+                    // 1.7851855342334024,
+                    // 1.4138726176225629,
+                    // 0.3567297944529728,
+                    // 0.6249287636118577,
+                    // 0.051962392158941606,
+                    // 0.52385888919136,
+                    // 0.12090744319379954
+
+                    1.79394021632064, 
+                    0.8540159264036973, 
+                    0.22641768193780543, 
+                    1.9894427269412354, 
+                    0.031659294433572516,
+                    0.5576040811090157, 
+                    0.5644690218386381
+
             };
-        PlayerSkeletonOneLayer p = new PlayerSkeletonOneLayer(weights);
-        int i = 0;
-        while (!s.lost) {
-            s.makeMove(p.pickMove(s, s.legalMoves()));
-            // System.out.println(s.getRowsCleared());
-            // s.draw();
-            // s.drawNext(0, 0);
-//            if (i > 10) {
-//                System.out.println(i);
-//                i = 0;
-//            } else {
-//                i++;
-//            }
-        }
+            PlayerSkeletonOneLayer p = new PlayerSkeletonOneLayer(weights);
+            while (!s.lost) {
+                s.makeMove(p.pickMove(s, s.legalMoves()));
+            }
 
-        System.out.println("You have completed " + s.getRowsCleared() + " rows.");
-        
-        
-        
-    	}
+            System.out.println("You have completed " + s.getRowsCleared() + " rows.");
+        }
     }
 
     public PlayerSkeletonOneLayer(double[] weights) {
@@ -350,23 +321,21 @@ public class PlayerSkeletonOneLayer {
         MAX_HEIGHT_WEIGHT = weights[4];
         PIT_DEPTH_WEIGHT = weights[5];
         MEAN_HEIGHT_DIFF_WEIGHT = weights[6];
-
     }
 
     public PlayerSkeletonOneLayer() {
     }
 
     public int run() {
-
         State s = new State();
         while (!s.lost) {
             s.makeMove(pickMove(s, s.legalMoves()));
-            // if (s.getRowsCleared() % 100000 == 0) {
-            // System.out.println(s.getRowsCleared());
-            // }
         }
-        System.out.println("You have completed " + s.getRowsCleared() + " rows.");
-
+        int rowCleared = s.getRowsCleared();
+        if (rowCleared > 1000000) {
+            System.out.println("------------------------million-------------------------");
+        }
+        System.out.println("OneLayerPlayer has completed " + rowCleared + " rows.");
         return s.getRowsCleared();
     }
 
@@ -382,25 +351,26 @@ public class PlayerSkeletonOneLayer {
     public static final int SLOT = 1;
 
     // possible orientations for a given piece type
-    protected static int[] pOrients = {1, 2, 4, 4, 4, 2, 2};
+    protected static int[] pOrients = { 1, 2, 4, 4, 4, 2, 2 };
 
     // the next several arrays define the piece vocabulary in detail
     // width of the pieces [piece ID][orientation]
-    protected static int[][] pWidth = { {2}, {1, 4}, {2, 3, 2, 3}, {2, 3, 2, 3}, {2, 3, 2, 3}, {3, 2}, {3, 2}};
+    protected static int[][] pWidth = { { 2 }, { 1, 4 }, { 2, 3, 2, 3 }, { 2, 3, 2, 3 }, { 2, 3, 2, 3 }, { 3, 2 },
+            { 3, 2 } };
     // height of the pieces [piece ID][orientation]
-    private static int[][] pHeight = { {2}, // square
-        {4, 1}, // vertical piece
-        {3, 2, 3, 2}, // L
-        {3, 2, 3, 2}, //
-        {3, 2, 3, 2}, // T
-        {2, 3}, {2, 3}};
-    private static int[][][] pBottom = { {{0, 0}}, { {0}, {0, 0, 0, 0}},
-        { {0, 0}, {0, 1, 1}, {2, 0}, {0, 0, 0}}, // L,
-        { {0, 0}, {0, 0, 0}, {0, 2}, {1, 1, 0}}, { {0, 1}, {1, 0, 1}, {1, 0}, {0, 0, 0}}, { {0, 0, 1}, {1, 0}},
-        { {1, 0, 0}, {0, 1}}};
-    private static int[][][] pTop = { {{2, 2}}, { {4}, {1, 1, 1, 1}}, { {3, 1}, {2, 2, 2}, {3, 3}, {1, 1, 2}},
-        { {1, 3}, {2, 1, 1}, {3, 3}, {2, 2, 2}}, { {3, 2}, {2, 2, 2}, {2, 3}, {1, 2, 1}}, { {1, 2, 2}, {3, 2}},
-        { {2, 2, 1}, {2, 3}}};
+    private static int[][] pHeight = { { 2 }, // square
+            { 4, 1 }, // vertical piece
+            { 3, 2, 3, 2 }, // L
+            { 3, 2, 3, 2 }, //
+            { 3, 2, 3, 2 }, // T
+            { 2, 3 }, { 2, 3 } };
+    private static int[][][] pBottom = { { { 0, 0 } }, { { 0 }, { 0, 0, 0, 0 } },
+            { { 0, 0 }, { 0, 1, 1 }, { 2, 0 }, { 0, 0, 0 } }, // L,
+            { { 0, 0 }, { 0, 0, 0 }, { 0, 2 }, { 1, 1, 0 } }, { { 0, 1 }, { 1, 0, 1 }, { 1, 0 }, { 0, 0, 0 } },
+            { { 0, 0, 1 }, { 1, 0 } }, { { 1, 0, 0 }, { 0, 1 } } };
+    private static int[][][] pTop = { { { 2, 2 } }, { { 4 }, { 1, 1, 1, 1 } },
+            { { 3, 1 }, { 2, 2, 2 }, { 3, 3 }, { 1, 1, 2 } }, { { 1, 3 }, { 2, 1, 1 }, { 3, 3 }, { 2, 2, 2 } },
+            { { 3, 2 }, { 2, 2, 2 }, { 2, 3 }, { 1, 2, 1 } }, { { 1, 2, 2 }, { 3, 2 } }, { { 2, 2, 1 }, { 2, 3 } } };
 
     // initialize legalMoves
     // legalMoves[piece type][num legal moves][tuple of orient and slot]
