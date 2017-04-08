@@ -6,8 +6,11 @@ import java.util.Random;
 public class Chromosome {
     
     public static final int NUM_OF_FEATURES = 12;
+    private static final int MIN = 0;
+    private static final int MAX = 2;
     
     public double[] weights = new double[NUM_OF_FEATURES];
+    public double[] exponents = new double[NUM_OF_FEATURES];
 
     //gaussian weights
     public Chromosome(Random rand, int mean, int stdDev) {
@@ -20,11 +23,17 @@ public class Chromosome {
     }
     
     //random integer weights
-    public Chromosome(int min, int max, Random rand) {
+    public Chromosome(int min, int max, Random rand, boolean exp) {
         
         for (int i=0; i<NUM_OF_FEATURES; i++) {
             weights[i] = randInt(min, max, rand);
             
+        }
+        
+        if (exp) {
+        	for (int i = 0; i<NUM_OF_FEATURES; i++) {
+        		exponents[i] = doubleGenerator(rand, MIN, MAX);
+        	}
         }
 
     }
@@ -32,41 +41,88 @@ public class Chromosome {
     
     public Chromosome(double[] weights) {
         
-        this.weights = weights;
+        this.weights = Arrays.copyOf(weights, weights.length);
     }
     
     
-    public static int randInt(int min, int max, Random rand) {
+    public Chromosome(double[] weights, double[] exponents) {
+        
+        this.weights = Arrays.copyOf(weights, weights.length);
+        this.exponents = Arrays.copyOf(exponents, exponents.length);
+    }
+    
+    public Chromosome() {
+    	
+	}
+
+
+	public static int randInt(int min, int max, Random rand) {
 
         int randomNum = rand.nextInt((max - min) + 1) + min;
 
         return randomNum;
     }
     
-    public double gaussianGenerator(Random rand, int mean, int stdDev) {
+    public static double gaussianGenerator(Random rand, int mean, int stdDev) {
         return rand.nextGaussian() * stdDev + mean ;
     }
     
-    public void mutate(Random rand, int mean, int stdDev) {
-        int toMutateIndex = rand.nextInt(NUM_OF_FEATURES);
+    public static double doubleGenerator(Random rand, int max, int min) {
+        return min + (rand.nextDouble() * (max - min)) ;
+    }
+    
+    public void mutate(Random rand, int mean, int stdDev, boolean exp) {
+		int toMutateIndex = rand.nextInt(NUM_OF_FEATURES);
         double mutation = gaussianGenerator(rand, mean, stdDev); 
-        this.weights[toMutateIndex] = this.weights[toMutateIndex] * mutation;
+
+
+    	if (exp) {
+    		int toMutateExpIndex = rand.nextInt(NUM_OF_FEATURES);
+    	    this.weights[toMutateIndex] = this.weights[toMutateIndex] * mutation;
+    	    this.exponents[toMutateExpIndex] = this.exponents[toMutateExpIndex] * mutation;
+
+    	} else {
+    		this.weights[toMutateIndex] = this.weights[toMutateIndex] * mutation;
+    	}
     }
      
-    public void crossOver(Chromosome other, ArrayList<Chromosome> newPopulation, Random rand) {
-        int crossOverSite = rand.nextInt(NUM_OF_FEATURES-1);
-        double[] copy = Arrays.copyOfRange(this.weights, 0, crossOverSite);
+    public void crossOver(Chromosome other, ArrayList<Chromosome> newPopulation, Random rand, boolean exp) {
+        int weightsCrossOverSite = rand.nextInt(NUM_OF_FEATURES-1);
         
-        for (int i=0; i<crossOverSite; i++) {
-            this.weights[i] = other.weights[i];
+        Chromosome child1 = new Chromosome();
+        Chromosome child2 = new Chromosome();
+
+        for (int i=0; i<weightsCrossOverSite; i++) {
+        	child1.weights[i] = other.weights[i];
+        	child2.weights[i] = this.weights[i];
+
         }
         
-        for (int i=0; i<crossOverSite; i++) {
-            other.weights[i] = copy[i];
+        for (int i=weightsCrossOverSite; i<NUM_OF_FEATURES; i++) {
+        	child1.weights[i] = this.weights[i];
+        	child2.weights[i] = other.weights[i];
+
         }
         
-        newPopulation.add(this);
-        newPopulation.add(other);
+        if (exp) {
+            int expCrossOverSite = rand.nextInt(NUM_OF_FEATURES-1);
+            
+            for (int i=0; i<expCrossOverSite; i++) {
+            	child1.exponents[i] = other.exponents[i];
+            	child2.exponents[i] = this.exponents[i];
+
+            }
+            
+            for (int i=expCrossOverSite; i<NUM_OF_FEATURES; i++) {
+            	child1.exponents[i] = this.exponents[i];
+            	child2.exponents[i] = other.exponents[i];
+
+            }
+
+        }
+        
+        newPopulation.add(child1);
+        newPopulation.add(child2);
     }
     
     

@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Random;
 import java.util.Stack;
 import java.util.concurrent.ThreadLocalRandom;
@@ -13,20 +14,20 @@ import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
 
 public class PlayerSkeleton {
        
-    private static final int GENERATION = 100;
+    private static final int GENERATION = 20;
     private static final int POPULATION_SIZE = 100;
     private static final int MEAN = 1;
     private static final int STD_DEV = 2;
     private static final long SEED = 12;
-    private static final int CROSS_OVER= 50;
-    private static final int MUTATION = 10;
+    private static final int CROSS_OVER= 60;
+    private static final int MUTATION = 20;
     private static final int MIN = -1000;
     private static final int MAX = 1000;
-
+    private static final boolean EXP = true;
 
     
     
-    public static int utilityValue(Chromosome c, State s) {
+    public static int utilityValue(Chromosome c, int currRowsCleared,  State s, boolean exp) {
         
         int[] colHeightList = new int[State.COLS];
         
@@ -52,7 +53,7 @@ public class PlayerSkeleton {
         features[0] = maxHeight(max);
         features[1] = numHoles(s, colHeightList);
         features[2] = connectedHoles(s, colHeightList);
-        features[3] = RemovedLines(s);
+        features[3] = RemovedLines(s, currRowsCleared);
         features[4] = altitudeDifference(max, min);
         features[5] = maxWellDepth(s, colHeightList);
         features[6] = sumOfWells(colHeightList);
@@ -63,7 +64,12 @@ public class PlayerSkeleton {
         features[11] = columnTransitions(s);
         
         for (int k=0; k<Chromosome.NUM_OF_FEATURES; k++) 
-            uValue += c.weights[k]*features[k];
+        	if (exp) {
+        		uValue += c.weights[k] * (Math.pow(features[k], c.exponents[k]));
+        	} else {
+                uValue += c.weights[k]*features[k];
+
+        	}
 
         return uValue;
     }
@@ -120,8 +126,8 @@ public class PlayerSkeleton {
         return numConnectedHoles;
     }
     
-    public static int RemovedLines(State s) {
-        return s.getRowsCleared();
+    public static int RemovedLines(State s, int currRowsCleared) {
+        return s.getRowsCleared() -  currRowsCleared;
     }
     
     public static int altitudeDifference(int max, int min) {
@@ -325,6 +331,7 @@ public class PlayerSkeleton {
         int numLegalMoves = s.legalMoves().length;
         int bestHeuValue = Integer.MIN_VALUE;
         int bestMove = rand.nextInt(numLegalMoves);
+        int currRowsCleared = s.getRowsCleared();
         
         //clone the curr state to play and generate the next state for comparison 
         NextState ns = new NextState();
@@ -338,7 +345,7 @@ public class PlayerSkeleton {
             ns.makeMove(i);
 
             //int reward = ns.getRowsCleared();
-            int uValue = utilityValue(c, ns);
+            int uValue = utilityValue(c, currRowsCleared, ns, EXP);
             int currHeuticValue = /*reward + */uValue;
             
             if (currHeuticValue > bestHeuValue) {
@@ -370,12 +377,13 @@ public class PlayerSkeleton {
         ArrayList<Chromosome> population = new ArrayList<Chromosome>();                        
         int[] populationIdentifier = new int[POPULATION_SIZE];
         
-        
+        int nonCrossOver = POPULATION_SIZE - CROSS_OVER;
+
         
   
         for (int i=0; i<POPULATION_SIZE; i++) {
-            population.add(new Chromosome(MIN, MAX, rand));
-            //double[] w = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+            population.add(new Chromosome(MIN, MAX, rand, EXP));
+            //double[] w = {-62709, -30271, 0, -48621, 35395, -12, -43810, 0, 0, -4041, -44262, -5832};
             //population.add(new Chromosome(w));
 
             populationIdentifier[i] = i;
@@ -412,7 +420,7 @@ public class PlayerSkeleton {
                 }
 
                 
-        
+        /*
                 
                 fw.write("Gen" + gen + " chrom" + i + "\n");
                 fw.write("rows cleared: " + s.getRowsCleared() + "\n");
@@ -421,12 +429,28 @@ public class PlayerSkeleton {
                 }
                 fw.write("\n");
                 fw.flush();
+                
+          */      
+                fw.write(gen + "\t" + i + "\t" + s.getRowsCleared() + "\t");
+                for (int j=0; j<Chromosome.NUM_OF_FEATURES; j++) {
+                    fw.write(c.weights[j] + "\t");
+                }
+                
+                if (EXP) {
+	                for (int j=0; j<Chromosome.NUM_OF_FEATURES; j++) {
+	                    fw.write(c.exponents[j] + "\t");
+	                }
+                }
+                fw.write("\n");
+                fw.flush();
+                
+
                 //System.out.println("You have completed "+s.getRowsCleared()+" rows.");
                 
                 
                 // update fitness value for chromosome
 
-                fitnessList[i] = s.getTurnNumber();    
+                fitnessList[i] = s.getRowsCleared();    
 
 	        }
 	        
@@ -446,10 +470,9 @@ public class PlayerSkeleton {
 	        
 	        EnumeratedIntegerDistribution dist = new EnumeratedIntegerDistribution(populationIdentifier, selectionProb);
 	        
-	        int nonCrossOver = POPULATION_SIZE - CROSS_OVER;
 	        // select non cross over chromosomes
 	        for (int i=0; i<nonCrossOver ; i++) {
-	            Chromosome toSelect = population.get(dist.sample());
+	            Chromosome toSelect = new Chromosome(population.get(dist.sample()).weights, population.get(dist.sample()).exponents);
 	            newPopulation.add(toSelect);
 	        }
 	        
@@ -463,12 +486,12 @@ public class PlayerSkeleton {
                 Chromosome c1 = population.get(index1);
                 Chromosome c2 = population.get(index2);
                 
-                c1.crossOver(c2, newPopulation, rand);
+                c1.crossOver(c2, newPopulation, rand, EXP);
             }
 	                
 	        
 	        
-	        ArrayList<Integer> mutationList = new ArrayList<Integer>();
+	        HashSet<Integer> mutationList = new HashSet<Integer>();
 	        
 	        int mutateIter = 0;
 	        while (mutateIter < MUTATION) {
@@ -476,7 +499,7 @@ public class PlayerSkeleton {
 	            if (mutationList.contains(index))
 	                continue;
 	            mutationList.add(index);
-	            newPopulation.get(index).mutate(rand, MEAN, STD_DEV);
+	            newPopulation.get(index).mutate(rand, MEAN, STD_DEV, EXP);
 	            mutateIter++;
 	            
 	        }
