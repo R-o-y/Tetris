@@ -1,26 +1,14 @@
 import java.util.Arrays;
 
-/**
- * This class is an implementation of a goal based Tetris playing agent. It
- * makes use of 2-layer local search to determine the best move to make next
- * given the current state (defined by the falling piece and the blocks already
- * placed on the board). The agent makes use of a heuristic function to
- * determine which states are better than others. This heuristic function makes
- * use of the following features: 1. The number of holes present 2. The number
- * of rows cleared so far 3. The maximum column height 4. The mean height
- * difference of every column 5. The sum of adjacent height variances 6. The sum
- * of pits 7. Is the state a lost state or not In order to determine the weights
- * to be given to each of these features, we ran the AI through a genetic
- * algorithm-based trainer, treating the set of seven weights as one chromosome
- * (with each allele corresponding to one of the seven weights) and the total
- * number of lines cleared until losing as the fitness function for the
- * chromosomes. After many evolutions on a population of 100 random chromosomes,
- * the chromosome with the best results was used as the weights for the
- * features.
- *
- */
-public class PlayerSkeleton {
+// Features being used are:
+// 1. Height sum
+// 2. Number of holes
+// 3. Completed lines
+// 4. Height variation (between adjacent columns)
+// 5. Terminal i.e. lost state
+public class PlayerSkeletonOneLayer {
 
+    // public static double HEIGHT_SUM_WEIGHT = 0.51f;
     public static double NUM_HOLES_WEIGHT;
     public static double COMPLETE_LINES_WEIGHT;
     public static double HEIGHT_VAR_WEIGHT;
@@ -29,9 +17,6 @@ public class PlayerSkeleton {
     public static double PIT_DEPTH_WEIGHT;
     public static double MEAN_HEIGHT_DIFF_WEIGHT;
 
-    // Essentially the same as State.java. Reproduced here so that we can carry
-    // out our local search across all possible resulting states given the
-    // current state.
     public static class TestState {
         int[][] field;
         int[] top;
@@ -90,6 +75,8 @@ public class PlayerSkeleton {
                 top[slot + c] = height + pTop[piece][orient][c];
             }
 
+            int rowsCleared = 0;
+
             // check for full rows - starting at the top
             for (int r = height + pHeight[piece][orient] - 1; r >= height; r--) {
                 // check all columns in the row
@@ -119,18 +106,22 @@ public class PlayerSkeleton {
             }
             return true;
         }
+
     }
 
     // implement this function to have a working system
     public int pickMove(State s, int[][] legalMoves) {
+        // Explore legalMoves.length new states
+        // legalMoves: an array of n total possible moves
+        // each one of n moves contain orientation as index 0 and slot as index
+        // 1
         double bestValueSoFar = -1;
         TestState bestStateSoFar = null;
         int bestMoveSoFar = 0;
         for (int i = 0; i < legalMoves.length; i++) {
             TestState state = new TestState(s);
             state.makeMove(s.nextPiece, legalMoves[i][ORIENT], legalMoves[i][SLOT]);
-
-            double value = !state.lost ? evaluateState(state) : evaluateOneLevelLower(state);
+            double value = evaluateOneLevelLower(state);
             if (value > bestValueSoFar || bestStateSoFar == null) {
                 bestStateSoFar = state;
                 bestValueSoFar = value;
@@ -141,13 +132,6 @@ public class PlayerSkeleton {
         return bestMoveSoFar;
     }
 
-    // Evaluate the value of the given state by going one layer deeper.
-    // Given the board position, for each of the N_PIECES of tetrominos,
-    // consider all
-    // possible placements and rotations, and find the highest heuristic value
-    // of all these resultant states of the particular tetromino. Find the
-    // average max heuristic value across all N_PIECES tetrominos: this will be
-    // the evaluation value for the state
     private double evaluateState(TestState state) {
         double sumLowerLevel = 0;
         for (int i = 0; i < N_PIECES; i++) {
@@ -164,11 +148,11 @@ public class PlayerSkeleton {
         return sumLowerLevel / N_PIECES;
     }
 
-    // Evaluate the state given features to be tested and weights. Apply
-    // heuristic function.
     private double evaluateOneLevelLower(TestState state) {
+        // Evaluate the state given features to be tested and weights
 
         double h =
+            /*-heightSum(state) * HEIGHT_SUM_WEIGHT + */
             -numHoles(state) * NUM_HOLES_WEIGHT + numRowsCleared(state) * COMPLETE_LINES_WEIGHT
                 + -heightVariationSum(state) * HEIGHT_VAR_WEIGHT + lostStateValue(state) * LOST_WEIGHT
                 + -maxHeight(state) * MAX_HEIGHT_WEIGHT + -pitDepthValue(state) * PIT_DEPTH_WEIGHT
@@ -176,16 +160,20 @@ public class PlayerSkeleton {
         return h;
     }
 
-    /*
-     * ===================== Features calculations =====================
-     */
-
-    // By default, set the lost state value as -10
     private int lostStateValue(TestState state) {
         return hasLost(state) ? -10 : 0;
     }
 
-    // The highest column in the board
+    private static int heightSum(TestState s) {
+        int[] top = s.top;
+        int sum = 0;
+        for (int height : top) {
+            sum += height;
+        }
+
+        return sum;
+    }
+
     private static int maxHeight(TestState s) {
         int[] top = s.top;
         int maxSoFar = -1;
@@ -196,8 +184,6 @@ public class PlayerSkeleton {
         return maxSoFar;
     }
 
-    // Holes are defined as all empty cells that are below the top of each
-    // column.
     private static int numHoles(TestState s) {
         int[][] field = s.field;
         int sumHoles = 0;
@@ -215,7 +201,6 @@ public class PlayerSkeleton {
         return s.rowsCleared;
     }
 
-    // summing up the differences of adjacent column heights
     private static int heightVariationSum(TestState s) {
         int[] top = s.top;
         int varSum = 0;
@@ -230,52 +215,54 @@ public class PlayerSkeleton {
         return s.lost;
     }
 
-    // The sum of all pit depths. A pit is defined as the difference in height
-    // between a column and its two adjacent columns, with a minimum difference
-    // of 3.
+    // Depth of pits, a pit is a column with adjacent columns higher by at least
+    // two blocks and the pit depth
+    // is defined as the difference between the height of the pit column and the
+    // shortest adjacent column.
     public double pitDepthValue(TestState s) {
         int[] top = s.top;
-        int pitDepthSum = 0;
+        int sumOfPitDepths = 0;
 
-        int pitColHeight;
-        int leftColHeight;
-        int rightColHeight;
+        int pitHeight;
+        int leftOfPitHeight;
+        int rightOfPitHeight;
 
         // pit depth of first column
-        pitColHeight = top[0];
-        rightColHeight = top[1];
-        int diff = rightColHeight - pitColHeight;
+        pitHeight = top[0];
+        rightOfPitHeight = top[1];
+        int diff = rightOfPitHeight - pitHeight;
         if (diff > 2) {
-            pitDepthSum += diff;
+            sumOfPitDepths += diff;
         }
 
         for (int col = 0; col < State.COLS - 2; col++) {
-            leftColHeight = top[col];
-            pitColHeight = top[col + 1];
-            rightColHeight = top[col + 2];
+            leftOfPitHeight = top[col];
+            pitHeight = top[col + 1];
+            rightOfPitHeight = top[col + 2];
 
-            int leftDiff = leftColHeight - pitColHeight;
-            int rightDiff = rightColHeight - pitColHeight;
-            int minDiff = Math.min(leftDiff, rightDiff);
+            int leftDiff = leftOfPitHeight - pitHeight;
+            int rightDiff = rightOfPitHeight - pitHeight;
+            int minDiff = leftDiff < rightDiff ? leftDiff : rightDiff;
+
             if (minDiff > 2) {
-                pitDepthSum += minDiff;
+                sumOfPitDepths += minDiff;
             }
         }
 
         // pit depth of last column
-        pitColHeight = top[State.COLS - 1];
-        leftColHeight = top[State.COLS - 2];
-        diff = leftColHeight - pitColHeight;
+        pitHeight = top[State.COLS - 1];
+        leftOfPitHeight = top[State.COLS - 2];
+        diff = leftOfPitHeight - pitHeight;
         if (diff > 2) {
-            pitDepthSum += diff;
+            sumOfPitDepths += diff;
         }
 
-        return pitDepthSum;
+        return sumOfPitDepths;
 
     }
 
-    // The mean height difference is the average of all height differences
-    // between each adjacent columns
+    // Mean height difference, the average of the difference between the height
+    // of each column and the mean height of the state.
     public double meanHeightDiffValue(TestState s) {
         int[] top = s.top;
 
@@ -296,22 +283,28 @@ public class PlayerSkeleton {
 
     public static void main(String[] args) {
 
+    	for (int k = 0; k < 8; k++) {
+    		
+
+    	
         State s = new State();
-        // The optimal set of weights found after 20 evolutions
+        // new TFrame(s);
         double[] weights =
             {
-            
-                    
-                    
-                    
-                    
-//                    1.7851855342334024, 
-//                    1.4138726176225629, 
-//                    0.3567297944529728, 
-//                    0.6249287636118577, 
-//                    0.051962392158941606,
-//                    0.52385888919136, 
-//                    0.12090744319379954
+            		
+            		
+            		
+            		
+            		
+            		
+//            		1.7851855342334024, 
+//            		1.4138726176225629, 
+//            		0.3567297944529728, 
+//            		0.6249287636118577, 
+//            		0.051962392158941606,
+//            		0.52385888919136, 
+//            		0.12090744319379954
+            		
             		
             		1.79394021632064,
             		0.8540159264036973,
@@ -320,26 +313,36 @@ public class PlayerSkeleton {
             		0.031659294433572516,
             		0.5576040811090157,
             		0.5644690218386381
-            
+            		
             
             
             
             
             
             };
-        PlayerSkeleton p = new PlayerSkeleton(weights);
+        PlayerSkeletonOneLayer p = new PlayerSkeletonOneLayer(weights);
+        int i = 0;
         while (!s.lost) {
             s.makeMove(p.pickMove(s, s.legalMoves()));
-            
-            if (s.getRowsCleared() % 1000 == 0) {
-            	System.out.println(s.getRowsCleared());
-            }
-             
+            // System.out.println(s.getRowsCleared());
+            // s.draw();
+            // s.drawNext(0, 0);
+//            if (i > 10) {
+//                System.out.println(i);
+//                i = 0;
+//            } else {
+//                i++;
+//            }
         }
-        System.out.println("player have completed " + s.getRowsCleared() + " rows.");
+
+        System.out.println("You have completed " + s.getRowsCleared() + " rows.");
+        
+        
+        
+    	}
     }
 
-    public PlayerSkeleton(double[] weights) {
+    public PlayerSkeletonOneLayer(double[] weights) {
         NUM_HOLES_WEIGHT = weights[0];
         COMPLETE_LINES_WEIGHT = weights[1];
         HEIGHT_VAR_WEIGHT = weights[2];
@@ -350,7 +353,9 @@ public class PlayerSkeleton {
 
     }
 
-    // This method is used to train the agent via a genetic algorithm
+    public PlayerSkeletonOneLayer() {
+    }
+
     public int run() {
 
         State s = new State();
@@ -360,14 +365,11 @@ public class PlayerSkeleton {
             // System.out.println(s.getRowsCleared());
             // }
         }
-        System.out.println("train have completed " + s.getRowsCleared() + " rows.");
+        System.out.println("You have completed " + s.getRowsCleared() + " rows.");
 
         return s.getRowsCleared();
     }
 
-    /*
-     * =============== Random info copied from State.java ===============
-     */
     public static final int COLS = State.COLS;
     public static final int ROWS = State.ROWS;
     public static final int N_PIECES = State.N_PIECES;
