@@ -130,7 +130,24 @@ public class PlayerSkeleton {
             TestState state = new TestState(s);
             state.makeMove(s.nextPiece, legalMoves[i][ORIENT], legalMoves[i][SLOT]);
 
-            double value = !state.lost ? evaluateState(state) : evaluateOneLevelLower(state);
+            
+            //---------------------------------------------------------------
+            // there is no need to do 2-layer look-ahead even for good case
+            // Therefore, I add one more condition, only when the max height is larger than a certain threshold,
+            // do 2-layer look-ahead, this will significantly speed up the player while still keep the performance
+            
+            // double value = !state.lost ? evaluateState(state) : evaluateOneLevelLower(state);
+            double value = 0;
+            if (maxHeight(state) > 8 && !state.lost) {
+                value = evaluateState(state);
+            } else {
+                value = evaluateOneLevelLower(state);
+            }
+            
+            
+            //----------------------- end ------------------------------------
+            
+            
             if (value > bestValueSoFar || bestStateSoFar == null) {
                 bestStateSoFar = state;
                 bestValueSoFar = value;

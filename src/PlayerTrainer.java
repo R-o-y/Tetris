@@ -8,7 +8,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.channels.FileChannel;
-import java.util.Arrays;
 
 import org.jgap.Chromosome;
 import org.jgap.Configuration;
