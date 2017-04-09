@@ -65,7 +65,7 @@ public class PlayerTrainer {
         // conf.setPopulationSize(POPULATION_SIZE);
         // Genotype population = Genotype.randomInitialGenotype(conf);
 
-        //
+        
         // ------------------------------------------------------------
 
         // MANUAL GENERATION OF CHROMOSOMES ---------------------------

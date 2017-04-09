@@ -3,14 +3,13 @@ package LSPI;
 import java.util.HashSet;
 import java.util.Random;
 
-
 /**
  * Created by nhan on 14/4/16.
  */
 
 public class Generator {
     private HashSet<String> explored;
-    private static final int  NUM_OF_ENCODED = 7;
+    private static final int NUM_OF_ENCODED = 7;
     private Random rand;
 
     public Generator() {
@@ -20,12 +19,12 @@ public class Generator {
 
     public String convertToStr(int[] nums) {
         StringBuilder sb = new StringBuilder();
-        for (int n: nums) {
+        for (int n : nums) {
             sb.append(n);
             sb.append(',');
         }
 
-        return sb.substring(0, sb.length()-1);
+        return sb.substring(0, sb.length() - 1);
     }
 
     public static NextState decodeState(String encoded) {
@@ -51,12 +50,13 @@ public class Generator {
             }
         }
 
-        int nextPiece = nums[NUM_OF_ENCODED-1] & ((1 << 3) - 1);
+        int nextPiece = nums[NUM_OF_ENCODED - 1] & ((1 << 3) - 1);
 
         // Checking validity of the state
         int maxHeight = 0;
         for (int j = 0; j < NextState.COLS; j++) {
-            if (tops[j] > maxHeight) maxHeight = tops[j];
+            if (tops[j] > maxHeight)
+                maxHeight = tops[j];
         }
 
         // Checking if there is a row with all empty or all non-empty
@@ -64,14 +64,17 @@ public class Generator {
         for (int i = 0; i < maxHeight; i++) {
             valid = false;
             for (int j = 0; j < NextState.COLS - 1; j++) {
-                if (fields[i][j] != fields[i][j+1]) valid = true;
+                if (fields[i][j] != fields[i][j + 1])
+                    valid = true;
             }
 
-            if (!valid) return null;
+            if (!valid)
+                return null;
         }
 
         // Check if nextPiece is valid
-        if (nextPiece >= NextState.N_PIECES) return null;
+        if (nextPiece >= NextState.N_PIECES)
+            return null;
 
         NextState s = new NextState();
         s.setNextPiece(nextPiece);
@@ -82,10 +85,11 @@ public class Generator {
     }
 
     /**
-     * The state is encoded into a string. The string will contains integer (32-bit)
-     * separated by commas. There will be 7 integers (224 bits) to represent a complete
-     * state. The first 200 LSB bits will represent the status of the cells. The next 3 LSB
-     * represent the next piece.
+     * The state is encoded into a string. The string will contains integer
+     * (32-bit) separated by commas. There will be 7 integers (224 bits) to
+     * represent a complete state. The first 200 LSB bits will represent the
+     * status of the cells. The next 3 LSB represent the next piece.
+     * 
      * @return the encoded string of a complete state
      */
     public String generateUniqueState() {

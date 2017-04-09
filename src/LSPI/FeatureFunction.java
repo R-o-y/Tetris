@@ -3,25 +3,26 @@
  */
 
 package LSPI;
+
 import Genetic.State;
 
 public class FeatureFunction {
     private static final int NUM_OF_FEATURE = 8;
-    public static final int F1 	= 0; // Landing height
-    public static final int F2 	= 1; // Rows clear
-    public static final int F3 	= 2; // Row transition
-    public static final int F4 	= 3; // Col transition
-    public static final int F5 	= 4; // Num of holes
-    public static final int F6 	= 5; // Well sum
-    public static final int F7	= 6; // Empty cells below some filled cell in the same column
-    public static final int F8	= 7; // Average height of columns
-
+    public static final int F1 = 0; // Landing height
+    public static final int F2 = 1; // Rows clear
+    public static final int F3 = 2; // Row transition
+    public static final int F4 = 3; // Col transition
+    public static final int F5 = 4; // Num of holes
+    public static final int F6 = 5; // Well sum
+    public static final int F7 = 6; // Empty cells below some filled cell in the
+                                    // same column
+    public static final int F8 = 7; // Average height of columns
 
     public double computeValueOfState(NextState s, double[] weights) {
         double[] featureVector = computeFeatureVector(s);
-        double result=0;
-        for (int i=0;i<weights.length;i++) {
-            result += featureVector[i]*weights[i];
+        double result = 0;
+        for (int i = 0; i < weights.length; i++) {
+            result += featureVector[i] * weights[i];
         }
         return result;
     }
@@ -43,7 +44,6 @@ public class FeatureFunction {
         return features;
     }
 
-
     /**
      * feature functions
      */
@@ -55,12 +55,12 @@ public class FeatureFunction {
         int piece = s.getOriginalState().getNextPiece();
 
         double height = -1;
-        for (int i=0, col=slot; i<s.getOriginalState().getpWidth()[piece][orient];i++,col++) {
-            height = Math.max(height, s.getOriginalState().getTop()[col] - s.getOriginalState().getpBottom()[piece][orient][i]);
+        for (int i = 0, col = slot; i < s.getOriginalState().getpWidth()[piece][orient]; i++, col++) {
+            height = Math.max(height,
+                    s.getOriginalState().getTop()[col] - s.getOriginalState().getpBottom()[piece][orient][i]);
         }
         return height + s.getOriginalState().getpHeight()[piece][orient] / 2.0;
     }
-
 
     private double feature2(NextState s) {
         return s.getRowsCleared() - s.getOriginalState().getRowsCleared() + 1;
@@ -71,10 +71,12 @@ public class FeatureFunction {
         int[][] field = s.getField();
 
         for (int i = 0; i < State.ROWS - 1; i++) {
-            if (field[i][0] == 0) transCount++;
-            if (field[i][State.COLS - 1] == 0) transCount++;
-            for(int j=1;j<State.COLS;j++) {
-                if (isDifferent(field[i][j], field[i][j-1])) {
+            if (field[i][0] == 0)
+                transCount++;
+            if (field[i][State.COLS - 1] == 0)
+                transCount++;
+            for (int j = 1; j < State.COLS; j++) {
+                if (isDifferent(field[i][j], field[i][j - 1])) {
                     transCount++;
                 }
             }
@@ -96,29 +98,29 @@ public class FeatureFunction {
             // Traverse each row until the second highest
             for (int j = 0; j < State.ROWS - 1; j++) {
                 // Feature 4: Count any differences in adjacent rows
-                if (isDifferent(field[j][i], field[j+1][i]))
+                if (isDifferent(field[j][i], field[j + 1][i]))
                     columnTransitions++;
                 // Feature 5: Count any empty cells directly under a filled cell
-                if ((field[j][i] == 0) && (field[j+1][i] > 0))
+                if ((field[j][i] == 0) && (field[j + 1][i] > 0))
                     holes++;
-                if ((field[j][i] == 0) && j<top[i])
+                if ((field[j][i] == 0) && j < top[i])
                     gaps++;
                 // Break if rest of column is empty
-                if(j >= top[i])
+                if (j >= top[i])
                     columnDone = true;
             }
-            if(columnDone)
+            if (columnDone)
                 continue;
         }
-        int[] results = {columnTransitions, holes, gaps};
+        int[] results = { columnTransitions, holes, gaps };
         return results;
     }
 
     public double[] features68(State s) {
         int[] top = s.getTop();
-        double cumulativeWells = 0, total=0;
+        double cumulativeWells = 0, total = 0;
 
-        for (int i = 0; i < State.COLS; i++){
+        for (int i = 0; i < State.COLS; i++) {
             total += top[i];
             // Feature 6:
             // Make sure array doesn't go out of bounds
@@ -126,16 +128,15 @@ public class FeatureFunction {
             int nextCol = i == State.COLS - 1 ? State.ROWS : top[i + 1];
             // Find depth of well
             int wellDepth = Math.min(prevCol, nextCol) - top[i];
-            // If number is positive, there is a well. Calculate cumulative well depth
-            if(wellDepth > 0)
+            // If number is positive, there is a well. Calculate cumulative well
+            // depth
+            if (wellDepth > 0)
                 cumulativeWells += wellDepth * (wellDepth + 1) / 2;
         }
-        total = ((double)total)/State.COLS;
-        double[] results = {cumulativeWells, total};
+        total = ((double) total) / State.COLS;
+        double[] results = { cumulativeWells, total };
         return results;
     }
-
-
 
     /**
      * Utility functions
