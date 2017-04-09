@@ -208,24 +208,6 @@ class LSPI {
 		
 		return diff;
 	}
-
-	private void generateRandomState(NextState s) {
-		int [][] fields = new int[ROWS][COLS];
-		int [] tops = new int[COLS];
-		for(int j = 0; j < ROWS-1; j++)
-			for(int k = 0; k < COLS; k++) {
-				if(Math.random()*2 >= 1) {
-					fields[j][k] = 1;
-					tops[k]= j + 1;
-				}
-				else 
-					fields[j][k] = 0;
-			}
-		s.setFieldDeep(fields);
-		s.setTopDeep(tops);
-		s.setNextPiece((int) Math.random()*N_PIECES);
-	}
-
 }
 
 

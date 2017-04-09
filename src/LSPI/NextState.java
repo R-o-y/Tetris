@@ -40,12 +40,6 @@ class NextState extends State {
         this.top = new int[COLS];
     }
 
-    //random integer, returns 0-6
-    private int randomPiece() {
-        return (int)(Math.random()*N_PIECES);
-    }
-
-
     public void copyState(State s) {
         originalState = s;
         this.nextPiece = s.getNextPiece();
