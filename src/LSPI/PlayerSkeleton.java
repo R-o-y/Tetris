@@ -78,12 +78,9 @@ public class PlayerSkeleton implements Runnable{
 
 	public void run() {
 		State s = new State();
-		//			new TFrame(s);
 		PlayerSkeleton p = new PlayerSkeleton();
 		while(!s.hasLost()) {
 			s.makeMove(p.pickMove(s,s.legalMoves()));
-			//				s.draw();
-			//				s.drawNext(0,0);
 			try {
 				Thread.sleep(0);
 			} catch (InterruptedException e) {
