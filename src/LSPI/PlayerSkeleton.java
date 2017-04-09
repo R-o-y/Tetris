@@ -5,8 +5,10 @@ import Genetic.State;
 
 public class PlayerSkeleton implements Runnable {
     private FeatureFunction featureFunction;
-    private static double[] weights = new double[] { -18632.774652174616, 6448.762504425676, -29076.013395444257,
-            -36689.271441668505, -16894.091937650956, -8720.173920864327, -49926.16836221889, -47198.39106032252
+    private static double[] weights = new double[] { 
+            -18632.774652174616, 6448.762504425676, -29076.013395444257,
+            -36689.271441668505, -16894.091937650956, -8720.173920864327, 
+            -49926.16836221889, -47198.39106032252
 
             // 8 feature functions
     };

@@ -69,7 +69,6 @@ class LSPI {
     private static final double GAMMA = 0.9; // can be changed
     private static final double EPS = 0.0005;
     private static final double P = 1.0 / N_PIECES;
-    private static final String PROCESS = "/20";
 
     public LSPI(double[] w) {
         weights = Arrays.copyOf(w, w.length);
@@ -120,7 +119,7 @@ class LSPI {
         while ((diff(weights, prevWeight) > EPS || count == 0) && count < 20) {
             prevWeight = Arrays.copyOf(weights, weights.length);
             System.out.println(Arrays.toString(weights));
-            System.out.println(count + PROCESS); // print out current stage
+            System.out.println(count); // print out current stage
             weights = updateWeights(s, weights, ns, nns);
             count++;
         }
