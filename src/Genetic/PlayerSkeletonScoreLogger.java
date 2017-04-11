@@ -410,9 +410,11 @@ public class PlayerSkeletonScoreLogger implements Runnable {
         State s = new State();
         // The optimal set of weights found after 20 evolutions
        
-        
+        float start = System.currentTimeMillis();
     	PlayerSkeletonScoreLogger p = new PlayerSkeletonScoreLogger(weights);
         while (!s.lost) {
+        
+
         	s.makeMove(p.pickMove(s, s.legalMoves()));
 
             //if (s.getRowsCleared() % 1000 == 0) {
@@ -420,14 +422,15 @@ public class PlayerSkeletonScoreLogger implements Runnable {
             //}
 
         }
-        
+        //time in minutes
+        float runtime = (System.currentTimeMillis() - start)/60000;
 
-        System.out.println(s.getRowsCleared());
+        System.out.println(s.getRowsCleared() + "," + runtime);
 
 	}
 
 	public static void main(String[] args) throws FileNotFoundException {
-		PrintStream out = new PrintStream(new FileOutputStream("score.txt"));
+		PrintStream out = new PrintStream(new FileOutputStream("time.csv"));
 		System.setOut(out);
 
         Thread[] threads = new Thread[ROUNDS];
