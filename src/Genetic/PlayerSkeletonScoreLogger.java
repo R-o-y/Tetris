@@ -422,8 +422,8 @@ public class PlayerSkeletonScoreLogger implements Runnable {
             //}
 
         }
-        //time in minutes
-        float runtime = (System.currentTimeMillis() - start)/60000;
+        //time in secs
+        float runtime = (System.currentTimeMillis() - start)/1000;
 
         System.out.println(s.getRowsCleared() + "," + runtime);
 
