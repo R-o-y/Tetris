@@ -1,4 +1,5 @@
 package Genetic;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
@@ -21,6 +22,8 @@ import java.util.Arrays;
  *
  */
 public class PlayerSkeleton {
+    
+    public static final int NUM_THREADS = 5; // 4;
 
     public static double NUM_HOLES_WEIGHT;
     public static double COMPLETE_LINES_WEIGHT;
@@ -121,12 +124,87 @@ public class PlayerSkeleton {
             return true;
         }
     }
+    
+    public volatile double bestValueSoFar = -1;
+    public volatile TestState bestStateSoFar = null;
+    public volatile int bestMoveSoFar = 0;
 
     // implement this function to have a working system
     public int pickMove(State s, int[][] legalMoves) {
-        double bestValueSoFar = -1;
-        TestState bestStateSoFar = null;
-        int bestMoveSoFar = 0;
+        //double bestValueSoFar = -1;
+        //TestState bestStateSoFar = null;
+        //int bestMoveSoFar = 0;
+        bestValueSoFar = -1;
+        bestStateSoFar = null;
+        bestMoveSoFar = 0;
+        
+        //////////////////////////////////////////////////////////////////////////
+        ArrayList<Thread> ts = new ArrayList<Thread>();
+        int[] legalMoveEvaluations = new int[legalMoves.length];
+        Mutex mutex = new Mutex();
+        //int[] bestOrientationScores = new int[4];
+        //int[] bestOrientationMoves = new int[4];
+        
+        for (int i=0; i<NUM_THREADS; i++) {
+            final int threadNum = i;
+            final Thread t1 = new Thread(new Runnable() {
+                public void run() {                    
+                    TestState localBestStateSoFar = null;
+                    double localBestValueSoFar = -1;
+                    int localBestMoveSoFar = 0;
+                
+                    for (int j=threadNum; j<legalMoves.length; j+=NUM_THREADS) {
+                        TestState state = new TestState(s);
+                        state.makeMove(s.nextPiece, legalMoves[j][ORIENT], legalMoves[j][SLOT]);
+                        
+                        double value = 0;
+                        if (maxHeight(state) > 8 && !state.lost) {
+                            value = evaluateState(state);
+                        } else {
+                            value = evaluateOneLevelLower(state);
+                        }
+                        
+                        if (value > localBestValueSoFar || localBestStateSoFar == null) {
+                            localBestStateSoFar = state;
+                            localBestValueSoFar = value;
+                            localBestMoveSoFar = j;
+                        }
+                    }
+                    
+                    try {
+                        
+                        mutex.release();
+                        
+                        if (localBestValueSoFar > bestValueSoFar || bestStateSoFar == null) {
+                            bestStateSoFar = localBestStateSoFar;
+                            bestValueSoFar = localBestValueSoFar;
+                            bestMoveSoFar = localBestMoveSoFar;
+                        }
+
+                        mutex.take();
+                        
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                       
+                }
+            });
+            
+            ts.add(t1);
+            t1.start();
+            
+        }
+        
+        // Join the threads back
+        try {
+            for (Thread t: ts) {
+                t.join();
+            }
+        } catch(Exception e) {
+            System.out.println("gg");
+        }
+        //////////////////////////////////////////////////////////////////////////
+        /*
         for (int i = 0; i < legalMoves.length; i++) {
             TestState state = new TestState(s);
             state.makeMove(s.nextPiece, legalMoves[i][ORIENT], legalMoves[i][SLOT]);
@@ -155,7 +233,7 @@ public class PlayerSkeleton {
                 bestMoveSoFar = i;
             }
 
-        }
+        }*/
         return bestMoveSoFar;
     }
 
