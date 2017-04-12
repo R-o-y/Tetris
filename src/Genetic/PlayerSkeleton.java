@@ -1,6 +1,12 @@
 package Genetic;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * This class is an implementation of a goal based Tetris playing agent. It
@@ -23,7 +29,7 @@ import java.util.Arrays;
  */
 public class PlayerSkeleton {
     
-    public static final int NUM_THREADS = 5; // 4;
+    public static final int NUM_THREADS = 4; // 4;
 
     public static double NUM_HOLES_WEIGHT;
     public static double COMPLETE_LINES_WEIGHT;
@@ -125,28 +131,81 @@ public class PlayerSkeleton {
         }
     }
     
+    ExecutorService executorService = Executors.newFixedThreadPool(NUM_THREADS);
     public volatile double bestValueSoFar = -1;
     public volatile TestState bestStateSoFar = null;
     public volatile int bestMoveSoFar = 0;
 
     // implement this function to have a working system
     public int pickMove(State s, int[][] legalMoves) {
-        //double bestValueSoFar = -1;
-        //TestState bestStateSoFar = null;
-        //int bestMoveSoFar = 0;
         bestValueSoFar = -1;
         bestStateSoFar = null;
         bestMoveSoFar = 0;
         
         //////////////////////////////////////////////////////////////////////////
         ArrayList<Thread> ts = new ArrayList<Thread>();
-        int[] legalMoveEvaluations = new int[legalMoves.length];
         Mutex mutex = new Mutex();
-        //int[] bestOrientationScores = new int[4];
-        //int[] bestOrientationMoves = new int[4];
+        
+        Collection<Future<?>> tasks = new LinkedList<Future<?>>();
         
         for (int i=0; i<NUM_THREADS; i++) {
             final int threadNum = i;
+            Future future = executorService.submit(new Callable() {
+                public Object call() throws Exception {
+                    TestState localBestStateSoFar = null;
+                    double localBestValueSoFar = -1;
+                    int localBestMoveSoFar = 0;
+                
+                    for (int j=threadNum; j<legalMoves.length; j+=NUM_THREADS) {
+                        TestState state = new TestState(s);
+                        state.makeMove(s.nextPiece, legalMoves[j][ORIENT], legalMoves[j][SLOT]);
+                        
+                        double value = 0;
+                        if (maxHeight(state) > 8 && !state.lost) {
+                            value = evaluateState(state);
+                        } else {
+                            value = evaluateOneLevelLower(state);
+                        }
+                        
+                        if (value > localBestValueSoFar || localBestStateSoFar == null) {
+                            localBestStateSoFar = state;
+                            localBestValueSoFar = value;
+                            localBestMoveSoFar = j;
+                        }
+                    }
+                    
+                    try {
+                        
+                        mutex.release();
+                        
+                        if (localBestValueSoFar > bestValueSoFar || bestStateSoFar == null) {
+                            bestStateSoFar = localBestStateSoFar;
+                            bestValueSoFar = localBestValueSoFar;
+                            bestMoveSoFar = localBestMoveSoFar;
+                        }
+
+                        mutex.take();
+                        
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    return new Object();
+                }
+            });
+            tasks.add(future);
+        }
+            
+        for (Future<?> currTask : tasks) {
+            try {
+                currTask.get();
+            } catch (Throwable thrown) {
+                thrown.printStackTrace();
+            }
+        }
+            
+            /*
+            final int threadNum = i;
+            
             final Thread t1 = new Thread(new Runnable() {
                 public void run() {                    
                     TestState localBestStateSoFar = null;
@@ -194,15 +253,16 @@ public class PlayerSkeleton {
             t1.start();
             
         }
-        
+        */
         // Join the threads back
+        /*
         try {
             for (Thread t: ts) {
                 t.join();
             }
         } catch(Exception e) {
             System.out.println("gg");
-        }
+        }*/
         //////////////////////////////////////////////////////////////////////////
         /*
         for (int i = 0; i < legalMoves.length; i++) {
@@ -405,14 +465,17 @@ public class PlayerSkeleton {
 
         };
         PlayerSkeleton p = new PlayerSkeleton(weights);
+        long now = System.nanoTime();
         while (!s.lost) {
             s.makeMove(p.pickMove(s, s.legalMoves()));
 
-            if (s.getRowsCleared() % 1000 == 0) {
-                System.out.println(s.getRowsCleared());
+            if (s.getRowsCleared() >= 100000) {
+                System.out.println(System.nanoTime() - now);
+                break;
             }
 
         }
+
         System.out.println("player have completed " + s.getRowsCleared() + " rows.");
     }
 
