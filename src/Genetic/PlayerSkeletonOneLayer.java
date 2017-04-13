@@ -9,12 +9,12 @@ import java.util.concurrent.Future;
 
 import Genetic.PlayerSkeleton.TestState;
 
-// Features being used are:
-// 1. Height sum
-// 2. Number of holes
-// 3. Completed lines
-// 4. Height variation (between adjacent columns)
-// 5. Terminal i.e. lost state
+/*
+ * The PlayerSkeletonOneLayer is a relaxed version of PlayerSkeleton that
+ * does not perform the lookahead, so that we can use for training purposes
+ * for faster training as lookahead will drastically increase evaluation time.
+ * 
+ */
 public class PlayerSkeletonOneLayer {
     
     public static final int NUM_THREADS = 4; // 4;
@@ -201,23 +201,6 @@ public class PlayerSkeletonOneLayer {
             }
         }
         
-        //////////////////////////////////////////////////////////////////////////
-        
-        /*
-        double bestValueSoFar = -1;
-        TestState bestStateSoFar = null;
-        int bestMoveSoFar = 0;
-        for (int i = 0; i < legalMoves.length; i++) {
-            TestState state = new TestState(s);
-            state.makeMove(s.nextPiece, legalMoves[i][ORIENT], legalMoves[i][SLOT]);
-            double value = evaluateOneLevelLower(state);
-            if (value > bestValueSoFar || bestStateSoFar == null) {
-                bestStateSoFar = state;
-                bestValueSoFar = value;
-                bestMoveSoFar = i;
-            }
-
-        }*/
         return bestMoveSoFar;
     }
     

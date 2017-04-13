@@ -13,27 +13,17 @@ import java.util.concurrent.Future;
 import Genetic.PlayerSkeleton.TestState;
 
 /**
- * This class is an implementation of a goal based Tetris playing agent. It
- * makes use of 2-layer local search to determine the best move to make next
- * given the current state (defined by the falling piece and the blocks already
- * placed on the board). The agent makes use of a heuristic function to
- * determine which states are better than others. This heuristic function makes
- * use of the following features: 1. The number of holes present 2. The number
- * of rows cleared so far 3. The maximum column height 4. The mean height
- * difference of every column 5. The sum of adjacent height variances 6. The sum
- * of pits 7. Is the state a lost state or not In order to determine the weights
- * to be given to each of these features, we ran the AI through a genetic
- * algorithm-based trainer, treating the set of seven weights as one chromosome
- * (with each allele corresponding to one of the seven weights) and the total
- * number of lines cleared until losing as the fitness function for the
- * chromosomes. After many evolutions on a population of 100 random chromosomes,
- * the chromosome with the best results was used as the weights for the
- * features.
- *
+ * This class is the same as PlayerSkeleton, but runs
+ * multiple threads that plays the Tetris Game using
+ * the given weights and logs out the results for each run
+ * in a CSV file for data analysis.
  */
 public class PlayerSkeletonScoreLogger implements Runnable {
 
+    // Number of runs to play the game
     private static final int ROUNDS = 50;
+    
+    // Heuristic values
 	public static double NUM_HOLES_WEIGHT;
     public static double COMPLETE_LINES_WEIGHT;
     public static double HEIGHT_VAR_WEIGHT;

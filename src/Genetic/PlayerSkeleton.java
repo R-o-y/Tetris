@@ -8,17 +8,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
- * This class is an implementation of a goal based Tetris playing agent. It
- * makes use of 2-layer local search to determine the best move to make next
- * given the current state (defined by the falling piece and the blocks already
- * placed on the board). The agent makes use of a heuristic function to
- * determine which states are better than others. 
- * 
  * The PlayerSkeleton class implements a utility-based agent that plays the Tetris game.
  * The agent receives the current state of the game as input, which consits of two components:
  * 1. The board position, that is, a binary description of the full/empty status of each square
  * 2. The shape of the current falling object
- * From this state, the agent utilizes a heuristic function 
+ * From this state, the agent utilizes a heuristic function comprising a linear weighted sum of 
+ * features to evaluate the possible actions and make the best possible action for the current state.
  * 
  * This heuristic function makes use of the following features: 
  * 1. The number of holes present 
@@ -29,23 +24,26 @@ import java.util.concurrent.Future;
  * 6. The mean height difference - the average of ALL height differences of each column with the MEAN height.
  * 7. Is the state a lost state from making the move
  * 
- * In order to determine the weights for each feature, we used genetic algorithm
- * to train the AI, treating the set of seven weights as one chromosome (with each
- * allele corresponding to one of the seven weights) and the fitness function
- * computes the fitness value by evaluating the number of rows cleared by the set 
- * of weights (the chromosome). After many evolutions on an initial population of
- * random chromosomes, we chose the chromosome with the best results as weights for
- * the player.
+ * To determine the weights for each feature in the heuristic function, we used 
+ * genetic algorithm to train the AI, treating the set of seven weights as a 
+ * chromosome (where each allele corresponds to a weight) and the fitness
+ * function computes the fitness value by evaluating the number of rows cleared
+ * by the chromosome (the set of weights). Starting with an initial population of 100,
+ * we ran the genetic algorithm over many evolutions and chose the fittest chromosome
+ * at the end as our weights for the player.
  * 
- * In order to determine the weights to be given to each of these features, 
- * we ran the AI through a genetic algorithm-based trainer, 
- * treating the set of seven weights as one chromosome (with each allele 
- * corresponding to one of the seven weights) and the total
- * number of lines cleared until losing as the fitness function for the
- * chromosomes. After many evolutions on a population of 100 random chromosomes,
- * the chromosome with the best results was used as the weights for the
- * features.
- *
+ * To make our AI play better, we also implement a lookahead for each possible move so
+ * that the AI can make better decision for the long term instead of only looking at the
+ * outcome of the current set of moves. Indeed, this helped to improve the peformance
+ * of our AI.
+ * 
+ * To make our AI play faster, we implemented multi-threading in 2 key areas:
+ * 1. At any state, to split the evaluation of all legal moves for each thread
+ * 2. During the lookahead evaluation, we need to account for 4 possible next pieces. 
+ *    The evaluation for each piece here is split across multiple threads.
+ * This allows the AI to play faster and thus learn faster since learning requires
+ * evaluation, which is playing to see the number of rows cleared.
+ * 
  */
 public class PlayerSkeleton {
     
@@ -152,11 +150,15 @@ public class PlayerSkeleton {
         }
     }
     
+    // Thread pool for multi-threading player 
     ExecutorService executorService = Executors.newFixedThreadPool(NUM_THREADS);
+    
+    // Variables to store the best that will be updated by each thread
     public volatile double bestValueSoFar = -1;
     public volatile TestState bestStateSoFar = null;
     public volatile int bestMoveSoFar = 0;
     
+    // Minimum column height limit before doing lookahead
     public static int LOOKAHEAD_LIMIT = 8;  // 8
 
     // implement this function to have a working system
@@ -168,9 +170,12 @@ public class PlayerSkeleton {
         //
         //////////////////////////////////////////////////////////////////////////
 
+        // Initialize best values
         bestValueSoFar = -1;
         bestStateSoFar = null;
         bestMoveSoFar = 0;
+        
+        // Initialize multi-threading essentials
         Mutex mutex = new Mutex();
         Collection<Future<?>> tasks = new LinkedList<Future<?>>();
         
@@ -183,6 +188,7 @@ public class PlayerSkeleton {
                     double localBestValueSoFar = -1;
                     int localBestMoveSoFar = 0;
                 
+                    // Split the legalMoves for each thread
                     for (int j=threadNum; j<legalMoves.length; j+=NUM_THREADS) {
                         TestState state = new TestState(s);
                         state.makeMove(s.nextPiece, legalMoves[j][ORIENT], legalMoves[j][SLOT]);
@@ -203,6 +209,7 @@ public class PlayerSkeleton {
                     
                     try {
                         
+                        // After thread completes, update the best one at a time
                         mutex.take();
                         
                         if (localBestValueSoFar > bestValueSoFar || bestStateSoFar == null) {
@@ -237,6 +244,7 @@ public class PlayerSkeleton {
     }
     
     
+    // Multi-threading for deep search lookahead
     private static int MAX_THREADS_FOR_DEEP_SEARCH = 4;
     ExecutorService executorServiceAgain = Executors.newFixedThreadPool(MAX_THREADS_FOR_DEEP_SEARCH);
     
@@ -303,7 +311,7 @@ public class PlayerSkeleton {
         return hasLost(state) ? -10 : 0;
     }
 
-    // The highest column in the board
+    // The height of the highest column in the board
     private static int maxHeight(TestState s) {
         int[] top = s.top;
         int maxSoFar = -1;
@@ -329,6 +337,7 @@ public class PlayerSkeleton {
         return sumHoles;
     }
 
+    // Number of rows cleared
     private static int numRowsCleared(TestState s) {
         return s.rowsCleared;
     }
@@ -344,6 +353,7 @@ public class PlayerSkeleton {
         return varSum;
     }
 
+    // Returns true if lost
     private static boolean hasLost(TestState s) {
         return s.lost;
     }
@@ -427,23 +437,15 @@ public class PlayerSkeleton {
 
         };
         PlayerSkeleton p = new PlayerSkeleton(weights);
-        long now = System.currentTimeMillis();
         while (!s.lost) {
             s.makeMove(p.pickMove(s, s.legalMoves()));
             
-            if (s.getRowsCleared() % 1000 == 0) {
+            if (s.getRowsCleared() % 10000 == 0) {
                 System.out.println("Rows cleared: " + s.getRowsCleared());
-                //System.out.println("Rows cleared: " + s.getRowsCleared() + ", Current height: " + Arrays.toString(s.getTop()));
-            }
-            
-            if (s.getRowsCleared() >= 100000) {
-                System.out.println(System.currentTimeMillis() - now);
-                break;
-            }
-            
+            }           
         }
 
-        System.out.println("player have completed " + s.getRowsCleared() + " rows.");
+        System.out.println("Player has completed " + s.getRowsCleared() + " rows.");
     }
 
     public PlayerSkeleton(double[] weights) {
@@ -467,7 +469,7 @@ public class PlayerSkeleton {
             // System.out.println(s.getRowsCleared());
             // }
         }
-        System.out.println("train have completed " + s.getRowsCleared() + " rows.");
+        System.out.println("Trainer has completed " + s.getRowsCleared() + " rows.");
 
         return s.getRowsCleared();
     }

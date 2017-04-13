@@ -29,12 +29,15 @@ import org.jgap.impl.FittestPopulationMerger;
 import org.jgap.impl.GABreeder;
 import org.jgap.impl.job.SimplePopulationSplitter;
 
+/**
+ *  PlayerTrainer but uses multiple threads to train a larger population
+ */
 public class PlayerTrainerMT {
 
 	public static final int NUM_THREADS = 4; // 4;
 	public static final int MAX_EVOLUTION_PERIOD = 1; //40;
 	public static final int MAX_EVOLUTION_CYCLES = 6; //5;
-	public static final int POPULATION_SIZE = 100;
+	public static final int POPULATION_SIZE = 25;
 
 	public static void main(String[] args) throws Exception {
 
@@ -58,7 +61,7 @@ public class PlayerTrainerMT {
 
 		
 		
-        BufferedReader in = new BufferedReader(new FileReader("logs0.txt"));
+        BufferedReader in = new BufferedReader(new FileReader("log.txt"));
         Population p = new Population(rootConf);
         String line = null;
         int count = 0;
