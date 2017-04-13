@@ -37,6 +37,7 @@ public class PlayerSkeleton {
     public static double MAX_HEIGHT_WEIGHT;
     public static double PIT_DEPTH_WEIGHT;
     public static double MEAN_HEIGHT_DIFF_WEIGHT;
+    
 
     // Essentially the same as State.java. Reproduced here so that we can carry
     // out our local search across all possible resulting states given the
@@ -245,7 +246,11 @@ public class PlayerSkeleton {
         }*/
         return bestMoveSoFar;
     }
-
+    
+    
+    private static int MAX_THREADS_FOR_DEEP_SEARCH = 20;
+    ExecutorService executorServiceAgain = Executors.newFixedThreadPool(NUM_THREADS);
+    
     // Evaluate the value of the given state by going one layer deeper.
     // Given the board position, for each of the N_PIECES of tetrominos,
     // consider all
@@ -254,6 +259,42 @@ public class PlayerSkeleton {
     // average max heuristic value across all N_PIECES tetrominos: this will be
     // the evaluation value for the state
     private double evaluateState(TestState state) {
+        
+        Collection<Future<Double>> tasks = new LinkedList<Future<Double>>();
+        
+        // Try multi-thread for this too.
+        for (int i=0; i < N_PIECES; i++) {
+            final int pieceNumber = i;
+            Mutex mutex = new Mutex();
+            
+            Future<Double> future = executorServiceAgain.submit(new Callable<Double>() {
+               public Double call() throws Exception {
+                   
+                   double maxSoFar = Integer.MIN_VALUE;
+                   for (int j=0; j< legalMoves[pieceNumber].length; j++) {
+                       TestState lowerState = new TestState(state);
+                       lowerState.makeMove(pieceNumber, legalMoves[pieceNumber][j][ORIENT], legalMoves[pieceNumber][j][SLOT]);
+                       maxSoFar = Math.max(maxSoFar, evaluateOneLevelLower(lowerState));
+                   }
+                   return maxSoFar;
+               }
+            });
+            
+            tasks.add(future);
+            
+        }
+        
+        double sumLowerLevel = 0;
+        
+        for (Future<Double> task : tasks) {
+            try {
+                sumLowerLevel += task.get();
+            } catch (Throwable thrown) {
+                thrown.printStackTrace();
+            }
+        }
+        
+        /*
         double sumLowerLevel = 0;
         for (int i = 0; i < N_PIECES; i++) {
             double maxSoFar = Integer.MIN_VALUE;
@@ -264,7 +305,7 @@ public class PlayerSkeleton {
 
             }
             sumLowerLevel += maxSoFar;
-        }
+        }*/
 
         return sumLowerLevel / N_PIECES;
     }
@@ -417,16 +458,16 @@ public class PlayerSkeleton {
         long now = System.nanoTime();
         while (!s.lost) {
             s.makeMove(p.pickMove(s, s.legalMoves()));
-            
+            /*
             if (s.getRowsCleared() % 1000 == 0) {
                 System.out.println("Rows cleared: " + s.getRowsCleared());
                 //System.out.println("Rows cleared: " + s.getRowsCleared() + ", Current height: " + Arrays.toString(s.getTop()));
-            }
-            /*
+            }*/
+            
             if (s.getRowsCleared() >= 100000) {
                 System.out.println(System.nanoTime() - now);
                 break;
-            }*/
+            }
             
         }
 
