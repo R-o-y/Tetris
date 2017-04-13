@@ -155,7 +155,7 @@ public class PlayerSkeletonScoreLogger implements Runnable {
             
             // double value = !state.lost ? evaluateState(state) : evaluateOneLevelLower(state);
             double value = 0;
-            if (maxHeight(state) > 8 && !state.lost) {
+            if (maxHeight(state) > 10 && !state.lost) {
                 value = evaluateState(state);
             } else {
                 value = evaluateOneLevelLower(state);

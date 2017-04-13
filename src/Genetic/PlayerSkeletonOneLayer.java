@@ -1,5 +1,5 @@
 package Genetic;
-import java.util.Arrays;
+
 
 // Features being used are:
 // 1. Height sum
@@ -17,98 +17,6 @@ public class PlayerSkeletonOneLayer {
     public static double MAX_HEIGHT_WEIGHT;
     public static double PIT_DEPTH_WEIGHT;
     public static double MEAN_HEIGHT_DIFF_WEIGHT;
-
-    public static class TestState {
-        int[][] field;
-        int[] top;
-        int turn;
-        int rowsCleared;
-        boolean lost = false;
-
-        public TestState(State s) {
-            this.field = cloneField(s.getField());
-            this.top = Arrays.copyOf(s.getTop(), s.getTop().length);
-            this.turn = s.getTurnNumber();
-            this.rowsCleared = s.getRowsCleared();
-        }
-
-        public TestState(TestState s) {
-            this.field = cloneField(s.field);
-            this.top = Arrays.copyOf(s.top, s.top.length);
-            this.turn = s.turn;
-            this.rowsCleared = s.rowsCleared;
-        }
-
-        private int[][] cloneField(int[][] field) {
-            int[][] newField = new int[field.length][];
-            for (int i = 0; i < newField.length; i++) {
-                newField[i] = Arrays.copyOf(field[i], field[i].length);
-            }
-            return newField;
-        }
-
-        // returns false if you lose - true otherwise
-        public boolean makeMove(int piece, int orient, int slot) {
-            // height if the first column makes contact
-            int height = top[slot] - pBottom[piece][orient][0];
-            // for each column beyond the first in the piece
-            for (int c = 1; c < pWidth[piece][orient]; c++) {
-                height = Math.max(height, top[slot + c] - pBottom[piece][orient][c]);
-            }
-
-            // check if game ended
-            if (height + pHeight[piece][orient] >= ROWS) {
-                lost = true;
-                return false;
-            }
-
-            // for each column in the piece - fill in the appropriate blocks
-            for (int i = 0; i < pWidth[piece][orient]; i++) {
-
-                // from bottom to top of brick
-                for (int h = height + pBottom[piece][orient][i]; h < height + pTop[piece][orient][i]; h++) {
-                    field[h][i + slot] = turn;
-                }
-            }
-
-            // adjust top
-            for (int c = 0; c < pWidth[piece][orient]; c++) {
-                top[slot + c] = height + pTop[piece][orient][c];
-            }
-
-            int rowsCleared = 0;
-
-            // check for full rows - starting at the top
-            for (int r = height + pHeight[piece][orient] - 1; r >= height; r--) {
-                // check all columns in the row
-                boolean full = true;
-                for (int c = 0; c < COLS; c++) {
-                    if (field[r][c] == 0) {
-                        full = false;
-                        break;
-                    }
-                }
-                // if the row was full - remove it and slide above stuff down
-                if (full) {
-                    rowsCleared++;
-                    // for each column
-                    for (int c = 0; c < COLS; c++) {
-
-                        // slide down all bricks
-                        for (int i = r; i < top[c]; i++) {
-                            field[i][c] = field[i + 1][c];
-                        }
-                        // lower the top
-                        top[c]--;
-                        while (top[c] >= 1 && field[top[c] - 1][c] == 0)
-                            top[c]--;
-                    }
-                }
-            }
-            return true;
-        }
-
-    }
 
     // implement this function to have a working system
     public int pickMove(State s, int[][] legalMoves) {
@@ -133,87 +41,12 @@ public class PlayerSkeletonOneLayer {
         return bestMoveSoFar;
     }
 
-    private double evaluateState(TestState state) {
-        double sumLowerLevel = 0;
-        for (int i = 0; i < N_PIECES; i++) {
-            double maxSoFar = Integer.MIN_VALUE;
-            for (int j = 0; j < legalMoves[i].length; j++) {
-                TestState lowerState = new TestState(state);
-                lowerState.makeMove(i, legalMoves[i][j][ORIENT], legalMoves[i][j][SLOT]);
-                maxSoFar = Math.max(maxSoFar, evaluateOneLevelLower(lowerState));
-
-            }
-            sumLowerLevel += maxSoFar;
-        }
-
-        return sumLowerLevel / N_PIECES;
-    }
-
     private double evaluateOneLevelLower(TestState state) {
-        // Evaluate the state given features to be tested and weights
-
-        double h =
-                /*-heightSum(state) * HEIGHT_SUM_WEIGHT + */
-                -numHoles(state) * NUM_HOLES_WEIGHT + numRowsCleared(state) * COMPLETE_LINES_WEIGHT
-                        + -heightVariationSum(state) * HEIGHT_VAR_WEIGHT + lostStateValue(state) * LOST_WEIGHT
-                        + -maxHeight(state) * MAX_HEIGHT_WEIGHT + -pitDepthValue(state) * PIT_DEPTH_WEIGHT
-                        + -meanHeightDiffValue(state) * MEAN_HEIGHT_DIFF_WEIGHT;
+        double h = -FeatureFunction.numHoles(state) * NUM_HOLES_WEIGHT + FeatureFunction.numRowsCleared(state) * COMPLETE_LINES_WEIGHT
+                + -FeatureFunction.heightVariationSum(state) * HEIGHT_VAR_WEIGHT + FeatureFunction.lostStateValue(state) * LOST_WEIGHT
+                + -FeatureFunction.maxHeight(state) * MAX_HEIGHT_WEIGHT + -FeatureFunction.pitDepthValue(state) * PIT_DEPTH_WEIGHT
+                + -FeatureFunction.meanHeightDiffValue(state) * MEAN_HEIGHT_DIFF_WEIGHT;
         return h;
-    }
-
-    private int lostStateValue(TestState state) {
-        return hasLost(state) ? -10 : 0;
-    }
-
-    private static int heightSum(TestState s) {
-        int[] top = s.top;
-        int sum = 0;
-        for (int height : top) {
-            sum += height;
-        }
-
-        return sum;
-    }
-
-    private static int maxHeight(TestState s) {
-        int[] top = s.top;
-        int maxSoFar = -1;
-        for (int i : top) {
-            maxSoFar = Math.max(maxSoFar, i);
-        }
-
-        return maxSoFar;
-    }
-
-    private static int numHoles(TestState s) {
-        int[][] field = s.field;
-        int sumHoles = 0;
-        for (int col = 0; col < COLS; col++) {
-            for (int row = 0; row < s.top[col] - 1; row++) {
-                if (field[row][col] == 0) {
-                    sumHoles++;
-                }
-            }
-        }
-        return sumHoles;
-    }
-
-    private static int numRowsCleared(TestState s) {
-        return s.rowsCleared;
-    }
-
-    private static int heightVariationSum(TestState s) {
-        int[] top = s.top;
-        int varSum = 0;
-        for (int i = 0; i < top.length - 1; i++) {
-            varSum += Math.abs(top[i] - top[i + 1]);
-        }
-
-        return varSum;
-    }
-
-    private static boolean hasLost(TestState s) {
-        return s.lost;
     }
 
     // Depth of pits, a pit is a column with adjacent columns higher by at least
@@ -350,20 +183,6 @@ public class PlayerSkeletonOneLayer {
     // width of the pieces [piece ID][orientation]
     protected static int[][] pWidth = { { 2 }, { 1, 4 }, { 2, 3, 2, 3 }, { 2, 3, 2, 3 }, { 2, 3, 2, 3 }, { 3, 2 },
             { 3, 2 } };
-    // height of the pieces [piece ID][orientation]
-    private static int[][] pHeight = { { 2 }, // square
-            { 4, 1 }, // vertical piece
-            { 3, 2, 3, 2 }, // L
-            { 3, 2, 3, 2 }, //
-            { 3, 2, 3, 2 }, // T
-            { 2, 3 }, { 2, 3 } };
-    private static int[][][] pBottom = { { { 0, 0 } }, { { 0 }, { 0, 0, 0, 0 } },
-            { { 0, 0 }, { 0, 1, 1 }, { 2, 0 }, { 0, 0, 0 } }, // L,
-            { { 0, 0 }, { 0, 0, 0 }, { 0, 2 }, { 1, 1, 0 } }, { { 0, 1 }, { 1, 0, 1 }, { 1, 0 }, { 0, 0, 0 } },
-            { { 0, 0, 1 }, { 1, 0 } }, { { 1, 0, 0 }, { 0, 1 } } };
-    private static int[][][] pTop = { { { 2, 2 } }, { { 4 }, { 1, 1, 1, 1 } },
-            { { 3, 1 }, { 2, 2, 2 }, { 3, 3 }, { 1, 1, 2 } }, { { 1, 3 }, { 2, 1, 1 }, { 3, 3 }, { 2, 2, 2 } },
-            { { 3, 2 }, { 2, 2, 2 }, { 2, 3 }, { 1, 2, 1 } }, { { 1, 2, 2 }, { 3, 2 } }, { { 2, 2, 1 }, { 2, 3 } } };
 
     // initialize legalMoves
     // legalMoves[piece type][num legal moves][tuple of orient and slot]

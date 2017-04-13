@@ -123,10 +123,14 @@ class LSPI {
             weights = updateWeights(s, weights, ns, nns);
             count++;
         }
+        
+        // hard code to correct the sign !!!
         for (int i = 0; i < K; i++) {
             weights[i] = weights[i] < 0 ? weights[i] : -weights[i];
         }
         weights[1] = -weights[1];
+        
+        // print result
         System.out.println("Final Weight: " + Arrays.toString(weights));
         return weights;
     }
@@ -139,14 +143,10 @@ class LSPI {
             A[j][j] = 1.0 / 100000; // corresponding to the number of state
         }
         double[][] B = new double[K][1];
-        Generator gen = new Generator();
 
         for (int i = 0; i < limit; i++) {
 
-            do {
-                s = Generator.decodeState(gen.generateUniqueState());
-            } while (s == null);
-
+            s = generateRandomState();
             // to get summation of all the possible action and nextStates
             for (int action = 0; action < s.legalMoves().length; action++) {
 
@@ -158,7 +158,7 @@ class LSPI {
                     double[][] phi1 = new double[K][1];
                     double[][] phi2 = new double[K][1];
                     double[][] phiSum = new double[K][1];
-                    phi1 = Matrix.convertToColumnVector(ff.computeFeatureVector(ns));
+                    phi1 = MatrixManager.convertToColumnVector(ff.computeFeatureVector(ns));
 
                     // calculate summation of all the possibilities
                     for (int piece = 0; piece < N_PIECES; piece++) {
@@ -166,33 +166,42 @@ class LSPI {
                         nns.copyState(ns);
                         nns.makeMove(pickMove(nns, w));
 
-                        phi2 = Matrix.convertToColumnVector(ff.computeFeatureVector(nns));
-                        phiSum = Matrix.matrixAdd(phiSum, phi2);
+                        phi2 = MatrixManager.convertToColumnVector(ff.computeFeatureVector(nns));
+                        phiSum = MatrixManager.matrixAdd(phiSum, phi2);
                         reward += getR(ns, nns, action);
                     }
 
                     // find numerator
                     // As both GAMMA and P is constant
-                    double[][] tempSum = Matrix.multiplyByConstant(phiSum, GAMMA * P);
-                    double[][] transposed = Matrix.transpose(Matrix.matrixSub(phi1, tempSum));
-                    double[][] numerator = Matrix.matrixMulti(A, phi1);
-                    numerator = Matrix.matrixMulti(numerator, transposed);
-                    numerator = Matrix.matrixMulti(numerator, A);
+                    double[][] tempSum = MatrixManager.multiplyByConstant(phiSum, GAMMA * P);
+                    double[][] transposed = MatrixManager.transpose(MatrixManager.matrixSub(phi1, tempSum));
+                    double[][] numerator = MatrixManager.matrixMulti(A, phi1);
+                    numerator = MatrixManager.matrixMulti(numerator, transposed);
+                    numerator = MatrixManager.matrixMulti(numerator, A);
 
                     // find denominator
-                    double[][] temp = Matrix.matrixMulti(transposed, A);
-                    temp = Matrix.matrixMulti(temp, phi1);
+                    double[][] temp = MatrixManager.matrixMulti(transposed, A);
+                    temp = MatrixManager.matrixMulti(temp, phi1);
                     // temp is a 1*1 array
                     double denominator = 1.0 + temp[0][0];
 
-                    A = Matrix.matrixSub(A, Matrix.multiplyByConstant(numerator, 1.0 / denominator));
-                    B = Matrix.matrixAdd(B, Matrix.multiplyByConstant(phi1, reward));
+                    A = MatrixManager.matrixSub(A, MatrixManager.multiplyByConstant(numerator, 1.0 / denominator));
+                    B = MatrixManager.matrixAdd(B, MatrixManager.multiplyByConstant(phi1, reward));
                 }
             }
         }
 
-        w = Matrix.convertToArray(Matrix.matrixMulti(A, B));
+        w = MatrixManager.convertToArray(MatrixManager.matrixMulti(A, B));
         return w;
+    }
+    
+    private NextState generateRandomState() {
+        Generator gen = new Generator();
+        NextState s = new NextState();
+        do {
+            s = Generator.decodeState(gen.generateUniqueState());
+        } while (s == null);
+        return s;
     }
 
     private double diff(double[] w, double[] prevWeight) {

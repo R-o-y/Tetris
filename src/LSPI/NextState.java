@@ -3,7 +3,7 @@ package LSPI;
 import java.util.Arrays;
 import Genetic.State;
 
-class NextState extends State {
+public class NextState extends State {
     private State originalState;
     private int turn = 0;
     private int cleared = 0;
@@ -18,7 +18,7 @@ class NextState extends State {
     private int[][] 	pHeight;
     private int[][][]	pTop;
 
-    NextState(State s) {
+    public NextState(State s) {
         this.pBottom = State.getpBottom();
         this.pHeight = State.getpHeight();
         this.pTop = State.getpTop();
@@ -26,7 +26,7 @@ class NextState extends State {
         copyState(s);
     }
 
-    NextState() {
+    public NextState() {
         this.pBottom = State.getpBottom();
         this.pHeight = State.getpHeight();
         this.pTop = State.getpTop();
