@@ -224,8 +224,45 @@ public class PlayerSkeletonOneLayer {
         }*/
         return bestMoveSoFar;
     }
+    
+    private static int MAX_THREADS_FOR_DEEP_SEARCH = 4;
+    ExecutorService executorServiceAgain = Executors.newFixedThreadPool(MAX_THREADS_FOR_DEEP_SEARCH);
+   
 
     private double evaluateState(TestState state) {
+        
+        Collection<Future<Double>> tasks = new LinkedList<Future<Double>>();
+        
+        // Try multi-thread for this too.
+        for (int i=0; i < N_PIECES; i++) {
+            final int pieceNumber = i;
+            Future<Double> future = executorServiceAgain.submit(new Callable<Double>() {
+               public Double call() throws Exception {
+                   double maxSoFar = Integer.MIN_VALUE;
+                   for (int j=0; j< legalMoves[pieceNumber].length; j++) {
+                       TestState lowerState = new TestState(state);
+                       lowerState.makeMove(pieceNumber, legalMoves[pieceNumber][j][ORIENT], legalMoves[pieceNumber][j][SLOT]);
+                       maxSoFar = Math.max(maxSoFar, evaluateOneLevelLower(lowerState));
+                   }
+                   return maxSoFar;
+               }
+            });
+            
+            tasks.add(future);
+            
+        }
+        
+        double sumLowerLevel = 0;
+        
+        for (Future<Double> task : tasks) {
+            try {
+                sumLowerLevel += task.get();
+            } catch (Throwable thrown) {
+                thrown.printStackTrace();
+            }
+        }
+        
+        /*
         double sumLowerLevel = 0;
         for (int i = 0; i < N_PIECES; i++) {
             double maxSoFar = Integer.MIN_VALUE;
@@ -237,6 +274,7 @@ public class PlayerSkeletonOneLayer {
             }
             sumLowerLevel += maxSoFar;
         }
+        */
 
         return sumLowerLevel / N_PIECES;
     }
