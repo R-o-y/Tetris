@@ -24,6 +24,12 @@ public class PlayerSkeletonOneLayer {
     
     public FeatureFunction ff = new FeatureFunction();
     public NextState state = new NextState();
+    
+    public static double[] weights = {
+        -18632.774652174616, 6448.762504425676, -29076.013395444257,
+        -36689.271441668505, -16894.091937650956, -8720.173920864327, 
+        -49926.16836221889, -47198.39106032252
+    };
 
     // implement this function to have a working system
     public int pickMove(State s, int[][] legalMoves) {
@@ -67,13 +73,6 @@ public class PlayerSkeletonOneLayer {
 
         for (int k = 0; k < 8; k++) {
             State s = new State();
-            double[] weights = {
-
-                    -18632.774652174616, 6448.762504425676, -29076.013395444257,
-                    -36689.271441668505, -16894.091937650956, -8720.173920864327, 
-                    -49926.16836221889, -47198.39106032252
-
-            };
             PlayerSkeletonOneLayer p = new PlayerSkeletonOneLayer(weights);
             while (!s.lost) {
                 s.makeMove(p.pickMove(s, s.legalMoves()));
@@ -104,9 +103,6 @@ public class PlayerSkeletonOneLayer {
         State s = new State();
         while (!s.lost) {
             s.makeMove(pickMove(s, s.legalMoves()));
-//            s.draw();
-//            try {
-//            Thread.sleep(0);}catch(Exception e){}
         }
         int rowCleared = s.getRowsCleared();
         if (rowCleared > 1000000) {

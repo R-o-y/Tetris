@@ -35,10 +35,12 @@ public class PlayerSkeleton {
 
     public FeatureFunction ff = new FeatureFunction();
     public NextState ns = new NextState();
+    
+    public int threshold = 12;
 
     // implement this function to have a working system
     public int pickMove(State s, int[][] legalMoves) {
-        double bestValueSoFar = -1;
+        double bestValueSoFar = Double.MIN_VALUE;
         NextState bestStateSoFar = null;
         int bestMoveSoFar = 0;
         
@@ -53,9 +55,8 @@ public class PlayerSkeleton {
             // Therefore, I add one more condition, only when the max height is larger than a certain threshold,
             // do 2-layer look-ahead, this will significantly speed up the player while still keep the performance
             
-            // double value = !state.lost ? evaluateState(state) : evaluateOneLevelLower(state);
             double value = 0;
-            if (FeatureFunctionObsolete.maxHeight(s) > 10) {
+            if (FeatureFunctionObsolete.maxHeight(s) > threshold) {
                 value = evaluateState(ns);
             } else {
                 value = evaluateOneLevelLower(ns);
@@ -93,7 +94,6 @@ public class PlayerSkeleton {
                 NextState lowerState = new NextState(state);
                 lowerState.makeMove(j);
                 maxSoFar = Math.max(maxSoFar, evaluateOneLevelLower(lowerState));
-
             }
             sumLowerLevel += maxSoFar;
         }
@@ -123,9 +123,8 @@ public class PlayerSkeleton {
         // The optimal set of weights found after 20 evolutions
         double[] weights = {
 
-                -18632.774652174616, 6448.762504425676, -29076.013395444257,
-                -36689.271441668505, -16894.091937650956, -8720.173920864327, 
-                -49926.16836221889, -47198.39106032252
+                // a sub-optimal weight for testing whether 2layer work with LSPI
+                -8389.920140025264, 0, 0, -28604.42300521227, 0, -4911.003209270886, -45526.66822160344, 0
 
         };
         PlayerSkeleton p = new PlayerSkeleton(weights);
