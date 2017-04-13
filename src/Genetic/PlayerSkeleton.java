@@ -248,8 +248,8 @@ public class PlayerSkeleton {
     }
     
     
-    private static int MAX_THREADS_FOR_DEEP_SEARCH = 20;
-    ExecutorService executorServiceAgain = Executors.newFixedThreadPool(NUM_THREADS);
+    private static int MAX_THREADS_FOR_DEEP_SEARCH = 4;
+    ExecutorService executorServiceAgain = Executors.newFixedThreadPool(MAX_THREADS_FOR_DEEP_SEARCH);
     
     // Evaluate the value of the given state by going one layer deeper.
     // Given the board position, for each of the N_PIECES of tetrominos,
@@ -265,11 +265,8 @@ public class PlayerSkeleton {
         // Try multi-thread for this too.
         for (int i=0; i < N_PIECES; i++) {
             final int pieceNumber = i;
-            Mutex mutex = new Mutex();
-            
             Future<Double> future = executorServiceAgain.submit(new Callable<Double>() {
                public Double call() throws Exception {
-                   
                    double maxSoFar = Integer.MIN_VALUE;
                    for (int j=0; j< legalMoves[pieceNumber].length; j++) {
                        TestState lowerState = new TestState(state);
@@ -455,17 +452,17 @@ public class PlayerSkeleton {
 
         };
         PlayerSkeleton p = new PlayerSkeleton(weights);
-        long now = System.nanoTime();
+        long now = System.currentTimeMillis();
         while (!s.lost) {
             s.makeMove(p.pickMove(s, s.legalMoves()));
-            /*
+            
             if (s.getRowsCleared() % 1000 == 0) {
                 System.out.println("Rows cleared: " + s.getRowsCleared());
                 //System.out.println("Rows cleared: " + s.getRowsCleared() + ", Current height: " + Arrays.toString(s.getTop()));
-            }*/
+            }
             
             if (s.getRowsCleared() >= 100000) {
-                System.out.println(System.nanoTime() - now);
+                System.out.println(System.currentTimeMillis() - now);
                 break;
             }
             
