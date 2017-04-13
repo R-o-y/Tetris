@@ -171,7 +171,7 @@ public class PlayerSkeletonOneLayer {
                     
                     try {
                         
-                        mutex.release();
+                        mutex.take();
                         
                         if (localBestValueSoFar > bestValueSoFar || bestStateSoFar == null) {
                             bestStateSoFar = localBestStateSoFar;
@@ -179,7 +179,7 @@ public class PlayerSkeletonOneLayer {
                             bestMoveSoFar = localBestMoveSoFar;
                         }
 
-                        mutex.take();
+                        mutex.release();
                         
                     } catch (InterruptedException e) {
                         e.printStackTrace();

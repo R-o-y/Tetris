@@ -175,9 +175,9 @@ public class PlayerTrainerMT {
 			            Population p = breeder.getLastPopulation();
 			            System.out.println(t1.getName() + " has completed " + evno + " evolution periods.");
 			            try {
-							mutex.release();
-							newPopulations[Integer.parseInt(conf.getId())] = p;
 							mutex.take();
+							newPopulations[Integer.parseInt(conf.getId())] = p;
+							mutex.release();
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
