@@ -60,10 +60,6 @@ public class PlayerSkeletonOneLayer {
                 v[5] * F6 +
                 v[6] * F7 + 
                 v[7] * F8;
-//        double h = -FeatureFunctionObsolete.numHoles(state) * NUM_HOLES_WEIGHT + FeatureFunctionObsolete.numRowsCleared(state) * COMPLETE_LINES_WEIGHT
-//                + -FeatureFunctionObsolete.heightVariationSum(state) * HEIGHT_VAR_WEIGHT + FeatureFunctionObsolete.lostStateValue(state) * LOST_WEIGHT
-//                + -FeatureFunctionObsolete.maxHeight(state) * MAX_HEIGHT_WEIGHT + -FeatureFunctionObsolete.pitDepthValue(state) * PIT_DEPTH_WEIGHT
-//                + -FeatureFunctionObsolete.meanHeightDiffValue(state) * MEAN_HEIGHT_DIFF_WEIGHT;
         return h;
     }
 

@@ -33,17 +33,20 @@ public class PlayerSkeleton {
     public static double F7;
     public static double F8;
 
-    
+    public FeatureFunction ff = new FeatureFunction();
+    public NextState ns = new NextState();
 
     // implement this function to have a working system
     public int pickMove(State s, int[][] legalMoves) {
         double bestValueSoFar = -1;
         NextState bestStateSoFar = null;
         int bestMoveSoFar = 0;
+        
         for (int i = 0; i < legalMoves.length; i++) {
-            NextState state = new NextState(s);
-            state.makeMove(i);
+            ns.copyState(s);
+            ns.makeMove(i);
 
+            if (ns.hasLost()) continue;
             
             //---------------------------------------------------------------
             // there is no need to do 2-layer look-ahead even for good case
@@ -52,18 +55,18 @@ public class PlayerSkeleton {
             
             // double value = !state.lost ? evaluateState(state) : evaluateOneLevelLower(state);
             double value = 0;
-//            if (FeatureFunctionObsolete.maxHeight(state) > 8 && !state.lost) {
-//                value = evaluateState(state);
-//            } else {
-                value = evaluateOneLevelLower(state);
-//            }
+            if (FeatureFunctionObsolete.maxHeight(s) > 10) {
+                value = evaluateState(ns);
+            } else {
+                value = evaluateOneLevelLower(ns);
+            }
             
             
             //----------------------- end ------------------------------------
             
             
             if (value > bestValueSoFar || bestStateSoFar == null) {
-                bestStateSoFar = state;
+                bestStateSoFar = ns;
                 bestValueSoFar = value;
                 bestMoveSoFar = i;
             }
@@ -83,9 +86,12 @@ public class PlayerSkeleton {
         double sumLowerLevel = 0;
         for (int i = 0; i < N_PIECES; i++) {
             double maxSoFar = Integer.MIN_VALUE;
+            
+            state.setNextPiece(i);
+            
             for (int j = 0; j < legalMoves[i].length; j++) {
                 NextState lowerState = new NextState(state);
-                lowerState.makeMove(i);
+                lowerState.makeMove(j);
                 maxSoFar = Math.max(maxSoFar, evaluateOneLevelLower(lowerState));
 
             }
@@ -98,7 +104,7 @@ public class PlayerSkeleton {
     // Evaluate the state given features to be tested and weights. Apply
     // heuristic function.
     private double evaluateOneLevelLower(NextState state) {
-        double[] v = (new FeatureFunction()).computeFeatureVector(state);
+        double[] v = ff.computeFeatureVector(state);
         double h = 
                 v[0] * F1 + 
                 v[1] * F2 +  
@@ -108,10 +114,6 @@ public class PlayerSkeleton {
                 v[5] * F6 +
                 v[6] * F7 + 
                 v[7] * F8;
-//        double h = -FeatureFunctionObsolete.numHoles(state) * NUM_HOLES_WEIGHT + FeatureFunctionObsolete.numRowsCleared(state) * COMPLETE_LINES_WEIGHT
-//                + -FeatureFunctionObsolete.heightVariationSum(state) * HEIGHT_VAR_WEIGHT + FeatureFunctionObsolete.lostStateValue(state) * LOST_WEIGHT
-//                + -FeatureFunctionObsolete.maxHeight(state) * MAX_HEIGHT_WEIGHT + -FeatureFunctionObsolete.pitDepthValue(state) * PIT_DEPTH_WEIGHT
-//                + -FeatureFunctionObsolete.meanHeightDiffValue(state) * MEAN_HEIGHT_DIFF_WEIGHT;
         return h;
     }
 
@@ -155,9 +157,6 @@ public class PlayerSkeleton {
         State s = new State();
         while (!s.lost) {
             s.makeMove(pickMove(s, s.legalMoves()));
-            // if (s.getRowsCleared() % 100000 == 0) {
-            // System.out.println(s.getRowsCleared());
-            // }
         }
         System.out.println("train have completed " + s.getRowsCleared() + " rows.");
 

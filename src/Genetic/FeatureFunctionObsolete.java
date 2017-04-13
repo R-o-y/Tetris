@@ -12,8 +12,8 @@ public class FeatureFunctionObsolete {
     }
 
     // The highest column in the board
-    public static int maxHeight(TestState s) {
-        int[] top = s.top;
+    public static int maxHeight(State s) {
+        int[] top = s.getTop();
         int maxSoFar = -1;
         for (int i : top) {
             maxSoFar = Math.max(maxSoFar, i);
