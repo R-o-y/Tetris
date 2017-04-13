@@ -31,9 +31,9 @@ import org.jgap.impl.job.SimplePopulationSplitter;
 
 public class PlayerTrainerMT {
 
-	public static final int NUM_THREADS = 4; // 4;
+	public static final int NUM_THREADS = 8; // 4;
 	public static final int MAX_EVOLUTION_PERIOD = 1; //40;
-	public static final int MAX_EVOLUTION_CYCLES = 6; //5;
+	public static final int MAX_EVOLUTION_CYCLES = 1; //5;
 	public static final int POPULATION_SIZE = 100;
 
 	public static void main(String[] args) throws Exception {
@@ -43,14 +43,15 @@ public class PlayerTrainerMT {
 		SimplePopulationSplitter pSplitter = new SimplePopulationSplitter(NUM_THREADS);
 		
 		Configuration rootConf = new DefaultConfiguration();
-		Gene[] genes = new Gene[7];
-		genes[0] = new DoubleGene(rootConf, 0, 2);
-		genes[1] = new DoubleGene(rootConf, 0, 2);
-		genes[2] = new DoubleGene(rootConf, 0, 2);
-		genes[3] = new DoubleGene(rootConf, 0, 2);
-		genes[4] = new DoubleGene(rootConf, 0, 2);
-		genes[5] = new DoubleGene(rootConf, 0, 2);
-		genes[6] = new DoubleGene(rootConf, 0, 2);
+		Gene[] genes = new Gene[8];
+		genes[0] = new DoubleGene(rootConf);
+		genes[1] = new DoubleGene(rootConf);
+		genes[2] = new DoubleGene(rootConf);
+		genes[3] = new DoubleGene(rootConf);
+		genes[4] = new DoubleGene(rootConf);
+		genes[5] = new DoubleGene(rootConf);
+		genes[6] = new DoubleGene(rootConf);
+		genes[7] = new DoubleGene(rootConf);
 		Chromosome sampleChromosome = new Chromosome(rootConf, genes);
 		rootConf.setSampleChromosome(sampleChromosome);
 		rootConf.setPopulationSize(POPULATION_SIZE * NUM_THREADS);
@@ -63,21 +64,23 @@ public class PlayerTrainerMT {
         String line = null;
         int count = 0;
         while ((line = in.readLine()) != null){
-        String[] arr = line.split(" "); genes = new Gene[7]; genes[0] = new
-        DoubleGene(rootConf,0, 2);
+        String[] arr = line.split(" "); genes = new Gene[8]; 
+        genes[0] = new DoubleGene(rootConf, -10000, 10000);
         genes[0].setAllele(Double.parseDouble(arr[0]));
-        genes[1] = new DoubleGene(rootConf, 0, 2);
+        genes[1] = new DoubleGene(rootConf);
         genes[1].setAllele(Double.parseDouble(arr[1]));
-        genes[2] = new DoubleGene(rootConf, 0, 2);
+        genes[2] = new DoubleGene(rootConf);
         genes[2].setAllele(Double.parseDouble(arr[2]));
-        genes[3] = new DoubleGene(rootConf, 0, 2);
+        genes[3] = new DoubleGene(rootConf);
         genes[3].setAllele(Double.parseDouble(arr[3]));
-        genes[4] = new DoubleGene(rootConf, 0, 2);
+        genes[4] = new DoubleGene(rootConf);
         genes[4].setAllele(Double.parseDouble(arr[4]));
-        genes[5] = new DoubleGene(rootConf, 0, 2);
+        genes[5] = new DoubleGene(rootConf);
         genes[5].setAllele(Double.parseDouble(arr[5]));
-        genes[6] = new DoubleGene(rootConf, 0, 2);
+        genes[6] = new DoubleGene(rootConf);
         genes[6].setAllele(Double.parseDouble(arr[6]));
+        genes[7] = new DoubleGene(rootConf);
+        genes[7].setAllele(Double.parseDouble(arr[7]));
         Chromosome c = new Chromosome(rootConf, genes);
         p.addChromosome(c);
         count++;
@@ -135,13 +138,13 @@ public class PlayerTrainerMT {
 			Configuration.reset(i + "");
 		    Configuration conf = new DefaultConfiguration(i + "", "Conf for thread");
 		    Gene[] genes = new Gene[7];
-			genes[0] = new DoubleGene(conf, 0, 2);
-			genes[1] = new DoubleGene(conf, 0, 2);
-			genes[2] = new DoubleGene(conf, 0, 2);
-			genes[3] = new DoubleGene(conf, 0, 2);
-			genes[4] = new DoubleGene(conf, 0, 2);
-			genes[5] = new DoubleGene(conf, 0, 2);
-			genes[6] = new DoubleGene(conf, 0, 2);
+			genes[0] = new DoubleGene(conf);
+			genes[1] = new DoubleGene(conf);
+			genes[2] = new DoubleGene(conf);
+			genes[3] = new DoubleGene(conf);
+			genes[4] = new DoubleGene(conf);
+			genes[5] = new DoubleGene(conf);
+			genes[6] = new DoubleGene(conf);
 			Chromosome chromosome = new Chromosome(conf, genes);
 			conf.setSampleChromosome(chromosome);
 			conf.setPopulationSize(POPULATION_SIZE);

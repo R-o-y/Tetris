@@ -1,5 +1,7 @@
 package Genetic;
 
+import LSPI.FeatureFunction;
+import LSPI.NextState;
 
 /**
  * This class is an implementation of a goal based Tetris playing agent. It
@@ -22,24 +24,25 @@ package Genetic;
  */
 public class PlayerSkeleton {
 
-    public static double NUM_HOLES_WEIGHT;
-    public static double COMPLETE_LINES_WEIGHT;
-    public static double HEIGHT_VAR_WEIGHT;
-    public static double LOST_WEIGHT;
-    public static double MAX_HEIGHT_WEIGHT;
-    public static double PIT_DEPTH_WEIGHT;
-    public static double MEAN_HEIGHT_DIFF_WEIGHT;
+    public static double F1;
+    public static double F2;
+    public static double F3;
+    public static double F4;
+    public static double F5;
+    public static double F6;
+    public static double F7;
+    public static double F8;
 
     
 
     // implement this function to have a working system
     public int pickMove(State s, int[][] legalMoves) {
         double bestValueSoFar = -1;
-        TestState bestStateSoFar = null;
+        NextState bestStateSoFar = null;
         int bestMoveSoFar = 0;
         for (int i = 0; i < legalMoves.length; i++) {
-            TestState state = new TestState(s);
-            state.makeMove(s.nextPiece, legalMoves[i][ORIENT], legalMoves[i][SLOT]);
+            NextState state = new NextState(s);
+            state.makeMove(i);
 
             
             //---------------------------------------------------------------
@@ -49,11 +52,11 @@ public class PlayerSkeleton {
             
             // double value = !state.lost ? evaluateState(state) : evaluateOneLevelLower(state);
             double value = 0;
-            if (FeatureFunction.maxHeight(state) > 8 && !state.lost) {
-                value = evaluateState(state);
-            } else {
+//            if (FeatureFunctionObsolete.maxHeight(state) > 8 && !state.lost) {
+//                value = evaluateState(state);
+//            } else {
                 value = evaluateOneLevelLower(state);
-            }
+//            }
             
             
             //----------------------- end ------------------------------------
@@ -76,13 +79,13 @@ public class PlayerSkeleton {
     // of all these resultant states of the particular tetromino. Find the
     // average max heuristic value across all N_PIECES tetrominos: this will be
     // the evaluation value for the state
-    private double evaluateState(TestState state) {
+    private double evaluateState(NextState state) {
         double sumLowerLevel = 0;
         for (int i = 0; i < N_PIECES; i++) {
             double maxSoFar = Integer.MIN_VALUE;
             for (int j = 0; j < legalMoves[i].length; j++) {
-                TestState lowerState = new TestState(state);
-                lowerState.makeMove(i, legalMoves[i][j][ORIENT], legalMoves[i][j][SLOT]);
+                NextState lowerState = new NextState(state);
+                lowerState.makeMove(i);
                 maxSoFar = Math.max(maxSoFar, evaluateOneLevelLower(lowerState));
 
             }
@@ -94,12 +97,21 @@ public class PlayerSkeleton {
 
     // Evaluate the state given features to be tested and weights. Apply
     // heuristic function.
-    private double evaluateOneLevelLower(TestState state) {
-
-        double h = -FeatureFunction.numHoles(state) * NUM_HOLES_WEIGHT + FeatureFunction.numRowsCleared(state) * COMPLETE_LINES_WEIGHT
-                + -FeatureFunction.heightVariationSum(state) * HEIGHT_VAR_WEIGHT + FeatureFunction.lostStateValue(state) * LOST_WEIGHT
-                + -FeatureFunction.maxHeight(state) * MAX_HEIGHT_WEIGHT + -FeatureFunction.pitDepthValue(state) * PIT_DEPTH_WEIGHT
-                + -FeatureFunction.meanHeightDiffValue(state) * MEAN_HEIGHT_DIFF_WEIGHT;
+    private double evaluateOneLevelLower(NextState state) {
+        double[] v = (new FeatureFunction()).computeFeatureVector(state);
+        double h = 
+                v[0] * F1 + 
+                v[1] * F2 +  
+                v[2] * F3 +
+                v[3] * F4 + 
+                v[4] * F5 + 
+                v[5] * F6 +
+                v[6] * F7 + 
+                v[7] * F8;
+//        double h = -FeatureFunctionObsolete.numHoles(state) * NUM_HOLES_WEIGHT + FeatureFunctionObsolete.numRowsCleared(state) * COMPLETE_LINES_WEIGHT
+//                + -FeatureFunctionObsolete.heightVariationSum(state) * HEIGHT_VAR_WEIGHT + FeatureFunctionObsolete.lostStateValue(state) * LOST_WEIGHT
+//                + -FeatureFunctionObsolete.maxHeight(state) * MAX_HEIGHT_WEIGHT + -FeatureFunctionObsolete.pitDepthValue(state) * PIT_DEPTH_WEIGHT
+//                + -FeatureFunctionObsolete.meanHeightDiffValue(state) * MEAN_HEIGHT_DIFF_WEIGHT;
         return h;
     }
 
@@ -109,13 +121,9 @@ public class PlayerSkeleton {
         // The optimal set of weights found after 20 evolutions
         double[] weights = {
 
-                1.0673515084146694,
-                0.5518373660872153,
-                0.13114119880147435,
-                1.6682687332623332,
-                0.013608946139451739,
-                0.3436325190123959,
-                0.3589287624556017
+                -18632.774652174616, 6448.762504425676, -29076.013395444257,
+                -36689.271441668505, -16894.091937650956, -8720.173920864327, 
+                -49926.16836221889, -47198.39106032252
 
         };
         PlayerSkeleton p = new PlayerSkeleton(weights);
@@ -131,14 +139,14 @@ public class PlayerSkeleton {
     }
 
     public PlayerSkeleton(double[] weights) {
-        NUM_HOLES_WEIGHT = weights[0];
-        COMPLETE_LINES_WEIGHT = weights[1];
-        HEIGHT_VAR_WEIGHT = weights[2];
-        LOST_WEIGHT = weights[3];
-        MAX_HEIGHT_WEIGHT = weights[4];
-        PIT_DEPTH_WEIGHT = weights[5];
-        MEAN_HEIGHT_DIFF_WEIGHT = weights[6];
-
+        F1 = weights[0];
+        F2 = weights[1];
+        F3 = weights[2];
+        F4 = weights[3];
+        F5 = weights[4];
+        F6 = weights[5];
+        F7 = weights[6];
+        F8 = weights[7];
     }
 
     // This method is used to train the agent via a genetic algorithm

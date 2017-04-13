@@ -47,14 +47,15 @@ public class PlayerTrainer {
         FitnessFunction fitnessFunction = new PlayerFitnessFunction();
         conf.setFitnessFunction(fitnessFunction);
 
-        Gene[] genes = new Gene[7];
-        genes[0] = new DoubleGene(conf, 0, 2);
-        genes[1] = new DoubleGene(conf, 0, 2);
-        genes[2] = new DoubleGene(conf, 0, 2);
-        genes[3] = new DoubleGene(conf, 0, 2);
-        genes[4] = new DoubleGene(conf, 0, 2);
-        genes[5] = new DoubleGene(conf, 0, 2);
-        genes[6] = new DoubleGene(conf, 0, 2);
+        Gene[] genes = new Gene[8];
+        genes[0] = new DoubleGene(conf);
+        genes[1] = new DoubleGene(conf);
+        genes[2] = new DoubleGene(conf);
+        genes[3] = new DoubleGene(conf);
+        genes[4] = new DoubleGene(conf);
+        genes[5] = new DoubleGene(conf);
+        genes[6] = new DoubleGene(conf);
+        genes[7] = new DoubleGene(conf);
         Chromosome chromosome = new Chromosome(conf, genes);
         conf.setSampleChromosome(chromosome);
 
@@ -62,8 +63,8 @@ public class PlayerTrainer {
         // Uncomment this section to auto generate chromosomes
         // Make sure manual generation section is commented out
 
-        // conf.setPopulationSize(POPULATION_SIZE);
-        // Genotype population = Genotype.randomInitialGenotype(conf);
+//         conf.setPopulationSize(POPULATION_SIZE);
+//         Genotype population = Genotype.randomInitialGenotype(conf);
 
         
         // ------------------------------------------------------------
@@ -77,21 +78,23 @@ public class PlayerTrainer {
         int count = 0;
         while ((line = in.readLine()) != null) {
             String[] arr = line.split(" ");
-            genes = new Gene[7];
-            genes[0] = new DoubleGene(conf, 0, 2);
+            genes = new Gene[8];
+            genes[0] = new DoubleGene(conf);
             genes[0].setAllele(Double.parseDouble(arr[0]));
-            genes[1] = new DoubleGene(conf, 0, 2);
+            genes[1] = new DoubleGene(conf);
             genes[1].setAllele(Double.parseDouble(arr[1]));
-            genes[2] = new DoubleGene(conf, 0, 2);
+            genes[2] = new DoubleGene(conf);
             genes[2].setAllele(Double.parseDouble(arr[2]));
-            genes[3] = new DoubleGene(conf, 0, 2);
+            genes[3] = new DoubleGene(conf);
             genes[3].setAllele(Double.parseDouble(arr[3]));
-            genes[4] = new DoubleGene(conf, 0, 2);
+            genes[4] = new DoubleGene(conf);
             genes[4].setAllele(Double.parseDouble(arr[4]));
-            genes[5] = new DoubleGene(conf, 0, 2);
+            genes[5] = new DoubleGene(conf);
             genes[5].setAllele(Double.parseDouble(arr[5]));
-            genes[6] = new DoubleGene(conf, 0, 2);
+            genes[6] = new DoubleGene(conf);
             genes[6].setAllele(Double.parseDouble(arr[6]));
+            genes[7] = new DoubleGene(conf);
+            genes[7].setAllele(Double.parseDouble(arr[7]));
             Chromosome c = new Chromosome(conf, genes);
             p.addChromosome(c);
             count++;

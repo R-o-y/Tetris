@@ -1,5 +1,8 @@
 package Genetic;
 
+import LSPI.NextState;
+
+import LSPI.FeatureFunction;
 
 // Features being used are:
 // 1. Height sum
@@ -10,13 +13,17 @@ package Genetic;
 public class PlayerSkeletonOneLayer {
 
     // public static double HEIGHT_SUM_WEIGHT = 0.51f;
-    public static double NUM_HOLES_WEIGHT;
-    public static double COMPLETE_LINES_WEIGHT;
-    public static double HEIGHT_VAR_WEIGHT;
-    public static double LOST_WEIGHT;
-    public static double MAX_HEIGHT_WEIGHT;
-    public static double PIT_DEPTH_WEIGHT;
-    public static double MEAN_HEIGHT_DIFF_WEIGHT;
+    public static double F1;
+    public static double F2;
+    public static double F3;
+    public static double F4;
+    public static double F5;
+    public static double F6;
+    public static double F7;
+    public static double F8;
+    
+    public FeatureFunction ff = new FeatureFunction();
+    public NextState state = new NextState();
 
     // implement this function to have a working system
     public int pickMove(State s, int[][] legalMoves) {
@@ -25,94 +32,39 @@ public class PlayerSkeletonOneLayer {
         // each one of n moves contain orientation as index 0 and slot as index
         // 1
         double bestValueSoFar = -1;
-        TestState bestStateSoFar = null;
+        NextState bestStateSoFar = null;
         int bestMoveSoFar = 0;
         for (int i = 0; i < legalMoves.length; i++) {
-            TestState state = new TestState(s);
-            state.makeMove(s.nextPiece, legalMoves[i][ORIENT], legalMoves[i][SLOT]);
+            state.copyState(s);
+            state.makeMove(i);
             double value = evaluateOneLevelLower(state);
+            if (state.hasLost()) 
+                continue;
             if (value > bestValueSoFar || bestStateSoFar == null) {
                 bestStateSoFar = state;
                 bestValueSoFar = value;
                 bestMoveSoFar = i;
             }
-
         }
         return bestMoveSoFar;
     }
 
-    private double evaluateOneLevelLower(TestState state) {
-        double h = -FeatureFunction.numHoles(state) * NUM_HOLES_WEIGHT + FeatureFunction.numRowsCleared(state) * COMPLETE_LINES_WEIGHT
-                + -FeatureFunction.heightVariationSum(state) * HEIGHT_VAR_WEIGHT + FeatureFunction.lostStateValue(state) * LOST_WEIGHT
-                + -FeatureFunction.maxHeight(state) * MAX_HEIGHT_WEIGHT + -FeatureFunction.pitDepthValue(state) * PIT_DEPTH_WEIGHT
-                + -FeatureFunction.meanHeightDiffValue(state) * MEAN_HEIGHT_DIFF_WEIGHT;
+    private double evaluateOneLevelLower(NextState state) {
+        double[] v = ff.computeFeatureVector(state);
+        double h = 
+                v[0] * F1 + 
+                v[1] * F2 +  
+                v[2] * F3 +
+                v[3] * F4 + 
+                v[4] * F5 + 
+                v[5] * F6 +
+                v[6] * F7 + 
+                v[7] * F8;
+//        double h = -FeatureFunctionObsolete.numHoles(state) * NUM_HOLES_WEIGHT + FeatureFunctionObsolete.numRowsCleared(state) * COMPLETE_LINES_WEIGHT
+//                + -FeatureFunctionObsolete.heightVariationSum(state) * HEIGHT_VAR_WEIGHT + FeatureFunctionObsolete.lostStateValue(state) * LOST_WEIGHT
+//                + -FeatureFunctionObsolete.maxHeight(state) * MAX_HEIGHT_WEIGHT + -FeatureFunctionObsolete.pitDepthValue(state) * PIT_DEPTH_WEIGHT
+//                + -FeatureFunctionObsolete.meanHeightDiffValue(state) * MEAN_HEIGHT_DIFF_WEIGHT;
         return h;
-    }
-
-    // Depth of pits, a pit is a column with adjacent columns higher by at least
-    // two blocks and the pit depth
-    // is defined as the difference between the height of the pit column and the
-    // shortest adjacent column.
-    public double pitDepthValue(TestState s) {
-        int[] top = s.top;
-        int sumOfPitDepths = 0;
-
-        int pitHeight;
-        int leftOfPitHeight;
-        int rightOfPitHeight;
-
-        // pit depth of first column
-        pitHeight = top[0];
-        rightOfPitHeight = top[1];
-        int diff = rightOfPitHeight - pitHeight;
-        if (diff > 2) {
-            sumOfPitDepths += diff;
-        }
-
-        for (int col = 0; col < State.COLS - 2; col++) {
-            leftOfPitHeight = top[col];
-            pitHeight = top[col + 1];
-            rightOfPitHeight = top[col + 2];
-
-            int leftDiff = leftOfPitHeight - pitHeight;
-            int rightDiff = rightOfPitHeight - pitHeight;
-            int minDiff = leftDiff < rightDiff ? leftDiff : rightDiff;
-
-            if (minDiff > 2) {
-                sumOfPitDepths += minDiff;
-            }
-        }
-
-        // pit depth of last column
-        pitHeight = top[State.COLS - 1];
-        leftOfPitHeight = top[State.COLS - 2];
-        diff = leftOfPitHeight - pitHeight;
-        if (diff > 2) {
-            sumOfPitDepths += diff;
-        }
-
-        return sumOfPitDepths;
-
-    }
-
-    // Mean height difference, the average of the difference between the height
-    // of each column and the mean height of the state.
-    public double meanHeightDiffValue(TestState s) {
-        int[] top = s.top;
-
-        int sum = 0;
-        for (int height : top) {
-            sum += height;
-        }
-
-        float meanHeight = (float) sum / top.length;
-
-        float avgDiff = 0;
-        for (int height : top) {
-            avgDiff += Math.abs(meanHeight - height);
-        }
-
-        return avgDiff / top.length;
     }
 
     public static void main(String[] args) {
@@ -121,18 +73,17 @@ public class PlayerSkeletonOneLayer {
             State s = new State();
             double[] weights = {
 
-                    1.0673515084146694,
-                    0.5518373660872153,
-                    0.13114119880147435,
-                    1.6682687332623332,
-                    0.013608946139451739,
-                    0.3436325190123959,
-                    0.3589287624556017
+                    -18632.774652174616, 6448.762504425676, -29076.013395444257,
+                    -36689.271441668505, -16894.091937650956, -8720.173920864327, 
+                    -49926.16836221889, -47198.39106032252
 
             };
             PlayerSkeletonOneLayer p = new PlayerSkeletonOneLayer(weights);
             while (!s.lost) {
                 s.makeMove(p.pickMove(s, s.legalMoves()));
+                if (s.getRowsCleared() % 10000 == 0) {
+                    System.out.println(s.getRowsCleared());
+                }
             }
 
             System.out.println("You have completed " + s.getRowsCleared() + " rows.");
@@ -140,13 +91,14 @@ public class PlayerSkeletonOneLayer {
     }
 
     public PlayerSkeletonOneLayer(double[] weights) {
-        NUM_HOLES_WEIGHT = weights[0];
-        COMPLETE_LINES_WEIGHT = weights[1];
-        HEIGHT_VAR_WEIGHT = weights[2];
-        LOST_WEIGHT = weights[3];
-        MAX_HEIGHT_WEIGHT = weights[4];
-        PIT_DEPTH_WEIGHT = weights[5];
-        MEAN_HEIGHT_DIFF_WEIGHT = weights[6];
+        F1 = weights[0];
+        F2 = weights[1];
+        F3 = weights[2];
+        F4 = weights[3];
+        F5 = weights[4];
+        F6 = weights[5];
+        F7 = weights[6];
+        F8 = weights[7];
     }
 
     public PlayerSkeletonOneLayer() {
@@ -156,6 +108,9 @@ public class PlayerSkeletonOneLayer {
         State s = new State();
         while (!s.lost) {
             s.makeMove(pickMove(s, s.legalMoves()));
+//            s.draw();
+//            try {
+//            Thread.sleep(0);}catch(Exception e){}
         }
         int rowCleared = s.getRowsCleared();
         if (rowCleared > 1000000) {

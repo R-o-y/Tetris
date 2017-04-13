@@ -55,11 +55,14 @@ public class FeatureFunction {
         int piece = s.getOriginalState().getNextPiece();
 
         double height = -1;
-        for (int i = 0, col = slot; i < s.getOriginalState().getpWidth()[piece][orient]; i++, col++) {
+        s.getOriginalState();
+        for (int i = 0, col = slot; i < State.getpWidth()[piece][orient]; i++, col++) {
+            s.getOriginalState();
             height = Math.max(height,
-                    s.getOriginalState().getTop()[col] - s.getOriginalState().getpBottom()[piece][orient][i]);
+                    s.getOriginalState().getTop()[col] - State.getpBottom()[piece][orient][i]);
         }
-        return height + s.getOriginalState().getpHeight()[piece][orient] / 2.0;
+        s.getOriginalState();
+        return height + State.getpHeight()[piece][orient] / 2.0;
     }
 
     private double feature2(NextState s) {

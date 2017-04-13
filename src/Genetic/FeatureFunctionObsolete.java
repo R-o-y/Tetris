@@ -1,6 +1,6 @@
 package Genetic;
 
-public class FeatureFunction {
+public class FeatureFunctionObsolete {
 
     /*
      * ===================== Features calculations =====================
