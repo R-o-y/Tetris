@@ -12,14 +12,35 @@ import java.util.concurrent.Future;
  * makes use of 2-layer local search to determine the best move to make next
  * given the current state (defined by the falling piece and the blocks already
  * placed on the board). The agent makes use of a heuristic function to
- * determine which states are better than others. This heuristic function makes
- * use of the following features: 1. The number of holes present 2. The number
- * of rows cleared so far 3. The maximum column height 4. The mean height
- * difference of every column 5. The sum of adjacent height variances 6. The sum
- * of pits 7. Is the state a lost state or not In order to determine the weights
- * to be given to each of these features, we ran the AI through a genetic
- * algorithm-based trainer, treating the set of seven weights as one chromosome
- * (with each allele corresponding to one of the seven weights) and the total
+ * determine which states are better than others. 
+ * 
+ * The PlayerSkeleton class implements a utility-based agent that plays the Tetris game.
+ * The agent receives the current state of the game as input, which consits of two components:
+ * 1. The board position, that is, a binary description of the full/empty status of each square
+ * 2. The shape of the current falling object
+ * From this state, the agent utilizes a heuristic function 
+ * 
+ * This heuristic function makes use of the following features: 
+ * 1. The number of holes present 
+ * 2. The number of rows cleared by making the move
+ * 3. The height variation - sum of all differences of adjacent column height
+ * 4. The maximum column height
+ * 5. The sum of all pit depths ( A pit is defined as the difference in height between a column and its two adjacent columns, with a minimum difference of 3)
+ * 6. The mean height difference - the average of ALL height differences of each column with the MEAN height.
+ * 7. Is the state a lost state from making the move
+ * 
+ * In order to determine the weights for each feature, we used genetic algorithm
+ * to train the AI, treating the set of seven weights as one chromosome (with each
+ * allele corresponding to one of the seven weights) and the fitness function
+ * computes the fitness value by evaluating the number of rows cleared by the set 
+ * of weights (the chromosome). After many evolutions on an initial population of
+ * random chromosomes, we chose the chromosome with the best results as weights for
+ * the player.
+ * 
+ * In order to determine the weights to be given to each of these features, 
+ * we ran the AI through a genetic algorithm-based trainer, 
+ * treating the set of seven weights as one chromosome (with each allele 
+ * corresponding to one of the seven weights) and the total
  * number of lines cleared until losing as the fitness function for the
  * chromosomes. After many evolutions on a population of 100 random chromosomes,
  * the chromosome with the best results was used as the weights for the
@@ -182,7 +203,7 @@ public class PlayerSkeleton {
                     
                     try {
                         
-                        mutex.release();
+                        mutex.take();
                         
                         if (localBestValueSoFar > bestValueSoFar || bestStateSoFar == null) {
                             bestStateSoFar = localBestStateSoFar;
@@ -190,7 +211,7 @@ public class PlayerSkeleton {
                             bestMoveSoFar = localBestMoveSoFar;
                         }
 
-                        mutex.take();
+                        mutex.release();
                         
                     } catch (InterruptedException e) {
                         e.printStackTrace();
@@ -211,39 +232,7 @@ public class PlayerSkeleton {
                 thrown.printStackTrace();
             }
         }
-      
-        //////////////////////////////////////////////////////////////////////////
 
-        /*
-        for (int i = 0; i < legalMoves.length; i++) {
-            TestState state = new TestState(s);
-            state.makeMove(s.nextPiece, legalMoves[i][ORIENT], legalMoves[i][SLOT]);
-
-            
-            //---------------------------------------------------------------
-            // there is no need to do 2-layer look-ahead even for good case
-            // Therefore, I add one more condition, only when the max height is larger than a certain threshold,
-            // do 2-layer look-ahead, this will significantly speed up the player while still keep the performance
-            
-            // double value = !state.lost ? evaluateState(state) : evaluateOneLevelLower(state);
-            double value = 0;
-            if (maxHeight(state) > 8 && !state.lost) {
-                value = evaluateState(state);
-            } else {
-                value = evaluateOneLevelLower(state);
-            }
-            
-            
-            //----------------------- end ------------------------------------
-            
-            
-            if (value > bestValueSoFar || bestStateSoFar == null) {
-                bestStateSoFar = state;
-                bestValueSoFar = value;
-                bestMoveSoFar = i;
-            }
-
-        }*/
         return bestMoveSoFar;
     }
     
@@ -290,19 +279,6 @@ public class PlayerSkeleton {
                 thrown.printStackTrace();
             }
         }
-        
-        /*
-        double sumLowerLevel = 0;
-        for (int i = 0; i < N_PIECES; i++) {
-            double maxSoFar = Integer.MIN_VALUE;
-            for (int j = 0; j < legalMoves[i].length; j++) {
-                TestState lowerState = new TestState(state);
-                lowerState.makeMove(i, legalMoves[i][j][ORIENT], legalMoves[i][j][SLOT]);
-                maxSoFar = Math.max(maxSoFar, evaluateOneLevelLower(lowerState));
-
-            }
-            sumLowerLevel += maxSoFar;
-        }*/
 
         return sumLowerLevel / N_PIECES;
     }
@@ -416,8 +392,7 @@ public class PlayerSkeleton {
 
     }
 
-    // The mean height difference is the average of all height differences
-    // between each adjacent columns
+    // The mean height difference is the average of ALL height differences of each column with the MEAN height.
     public double meanHeightDiffValue(TestState s) {
         int[] top = s.top;
 

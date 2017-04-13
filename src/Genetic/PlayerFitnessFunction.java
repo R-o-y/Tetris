@@ -7,10 +7,6 @@ import org.jgap.IChromosome;
 
 public class PlayerFitnessFunction extends FitnessFunction {
 
-    public PlayerFitnessFunction() {
-
-    }
-
     @Override
     // Evaluation of subject's fitness
     protected double evaluate(IChromosome subject) {

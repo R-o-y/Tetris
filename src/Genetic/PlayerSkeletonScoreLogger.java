@@ -3,6 +3,14 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import Genetic.PlayerSkeleton.TestState;
 
 /**
  * This class is an implementation of a goal based Tetris playing agent. It
@@ -137,44 +145,96 @@ public class PlayerSkeletonScoreLogger implements Runnable {
             return true;
         }
     }
+    
+    public static final int NUM_THREADS = 4; // 4;
+    public static int LOOKAHEAD_LIMIT = 8;  // 8
+
+    ExecutorService executorService = Executors.newFixedThreadPool(NUM_THREADS);
+    public volatile double bestValueSoFar = -1;
+    public volatile TestState bestStateSoFar = null;
+    public volatile int bestMoveSoFar = 0;
+    
 
     // implement this function to have a working system
     public int pickMove(State s, int[][] legalMoves) {
-        double bestValueSoFar = -1;
-        TestState bestStateSoFar = null;
-        int bestMoveSoFar = 0;
-        for (int i = 0; i < legalMoves.length; i++) {
-            TestState state = new TestState(s);
-            state.makeMove(s.nextPiece, legalMoves[i][ORIENT], legalMoves[i][SLOT]);
 
-            
-            //---------------------------------------------------------------
-            // there is no need to do 2-layer look-ahead even for good case
-            // Therefore, I add one more condition, only when the max height is larger than a certain threshold,
-            // do 2-layer look-ahead, this will significantly speed up the player while still keep the performance
-            
-            // double value = !state.lost ? evaluateState(state) : evaluateOneLevelLower(state);
-            double value = 0;
-            if (maxHeight(state) > 8 && !state.lost) {
-                value = evaluateState(state);
-            } else {
-                value = evaluateOneLevelLower(state);
-            }
-            
-            
-            //----------------------- end ------------------------------------
-            
-            
-            if (value > bestValueSoFar || bestStateSoFar == null) {
-                bestStateSoFar = state;
-                bestValueSoFar = value;
-                bestMoveSoFar = i;
-            }
+        //////////////////////////////////////////////////////////////////////////
+        //
+        // Applying Multi-Threading to Player
+        //
+        //////////////////////////////////////////////////////////////////////////
 
+        bestValueSoFar = -1;
+        bestStateSoFar = null;
+        bestMoveSoFar = 0;
+        Mutex mutex = new Mutex();
+        Collection<Future<?>> tasks = new LinkedList<Future<?>>();
+        
+        // Request for work to be done by NUM_THREADS threads.
+        for (int i=0; i<NUM_THREADS; i++) {
+            final int threadNum = i;
+            Future<?> future = executorService.submit(new Callable<Object>() {
+                public Object call() throws Exception {
+                    TestState localBestStateSoFar = null;
+                    double localBestValueSoFar = -1;
+                    int localBestMoveSoFar = 0;
+                
+                    for (int j=threadNum; j<legalMoves.length; j+=NUM_THREADS) {
+                        TestState state = new TestState(s);
+                        state.makeMove(s.nextPiece, legalMoves[j][ORIENT], legalMoves[j][SLOT]);
+                        
+                        double value = 0;
+                        if (maxHeight(state) > LOOKAHEAD_LIMIT && !state.lost) {
+                            value = evaluateState(state);
+                        } else {
+                            value = evaluateOneLevelLower(state);
+                        }
+                        
+                        if (value > localBestValueSoFar || localBestStateSoFar == null) {
+                            localBestStateSoFar = state;
+                            localBestValueSoFar = value;
+                            localBestMoveSoFar = j;
+                        }
+                    }
+                    
+                    try {
+                        
+                        mutex.take();
+                        
+                        if (localBestValueSoFar > bestValueSoFar || bestStateSoFar == null) {
+                            bestStateSoFar = localBestStateSoFar;
+                            bestValueSoFar = localBestValueSoFar;
+                            bestMoveSoFar = localBestMoveSoFar;
+                        }
+
+                        mutex.release();
+                        
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                }
+            });
+            
+            // Add to list of tasks to check for completion
+            tasks.add(future);
         }
+        
+        // Wait for all the threads to complete their work
+        for (Future<?> currTask : tasks) {
+            try {
+                currTask.get();
+            } catch (Throwable thrown) {
+                thrown.printStackTrace();
+            }
+        }
+
         return bestMoveSoFar;
     }
 
+    private static int MAX_THREADS_FOR_DEEP_SEARCH = 4;
+    ExecutorService executorServiceAgain = Executors.newFixedThreadPool(MAX_THREADS_FOR_DEEP_SEARCH);
+    
     // Evaluate the value of the given state by going one layer deeper.
     // Given the board position, for each of the N_PIECES of tetrominos,
     // consider all
@@ -183,16 +243,36 @@ public class PlayerSkeletonScoreLogger implements Runnable {
     // average max heuristic value across all N_PIECES tetrominos: this will be
     // the evaluation value for the state
     private double evaluateState(TestState state) {
+        
+        Collection<Future<Double>> tasks = new LinkedList<Future<Double>>();
+        
+        // Try multi-thread for this too.
+        for (int i=0; i < N_PIECES; i++) {
+            final int pieceNumber = i;
+            Future<Double> future = executorServiceAgain.submit(new Callable<Double>() {
+               public Double call() throws Exception {
+                   double maxSoFar = Integer.MIN_VALUE;
+                   for (int j=0; j< legalMoves[pieceNumber].length; j++) {
+                       TestState lowerState = new TestState(state);
+                       lowerState.makeMove(pieceNumber, legalMoves[pieceNumber][j][ORIENT], legalMoves[pieceNumber][j][SLOT]);
+                       maxSoFar = Math.max(maxSoFar, evaluateOneLevelLower(lowerState));
+                   }
+                   return maxSoFar;
+               }
+            });
+            
+            tasks.add(future);
+            
+        }
+        
         double sumLowerLevel = 0;
-        for (int i = 0; i < N_PIECES; i++) {
-            double maxSoFar = Integer.MIN_VALUE;
-            for (int j = 0; j < legalMoves[i].length; j++) {
-                TestState lowerState = new TestState(state);
-                lowerState.makeMove(i, legalMoves[i][j][ORIENT], legalMoves[i][j][SLOT]);
-                maxSoFar = Math.max(maxSoFar, evaluateOneLevelLower(lowerState));
-
+        
+        for (Future<Double> task : tasks) {
+            try {
+                sumLowerLevel += task.get();
+            } catch (Throwable thrown) {
+                thrown.printStackTrace();
             }
-            sumLowerLevel += maxSoFar;
         }
 
         return sumLowerLevel / N_PIECES;
@@ -433,6 +513,7 @@ public class PlayerSkeletonScoreLogger implements Runnable {
 		PrintStream out = new PrintStream(new FileOutputStream("time.csv"));
 		System.setOut(out);
 
+		
         Thread[] threads = new Thread[ROUNDS];
         for (int i = 0; i < ROUNDS; i++) {
             threads[i] = new Thread(new PlayerSkeletonScoreLogger(weights));
