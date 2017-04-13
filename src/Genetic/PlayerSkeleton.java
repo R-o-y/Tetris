@@ -1,5 +1,4 @@
 package Genetic;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -135,22 +134,28 @@ public class PlayerSkeleton {
     public volatile double bestValueSoFar = -1;
     public volatile TestState bestStateSoFar = null;
     public volatile int bestMoveSoFar = 0;
+    
+    public static int LOOKAHEAD_LIMIT = 8;
 
     // implement this function to have a working system
     public int pickMove(State s, int[][] legalMoves) {
+
+        //////////////////////////////////////////////////////////////////////////
+        //
+        // Applying Multi-Threading to Player
+        //
+        //////////////////////////////////////////////////////////////////////////
+
         bestValueSoFar = -1;
         bestStateSoFar = null;
         bestMoveSoFar = 0;
-        
-        //////////////////////////////////////////////////////////////////////////
-        ArrayList<Thread> ts = new ArrayList<Thread>();
         Mutex mutex = new Mutex();
-        
         Collection<Future<?>> tasks = new LinkedList<Future<?>>();
         
+        // Request for work to be done by NUM_THREADS threads.
         for (int i=0; i<NUM_THREADS; i++) {
             final int threadNum = i;
-            Future future = executorService.submit(new Callable() {
+            Future<?> future = executorService.submit(new Callable<Object>() {
                 public Object call() throws Exception {
                     TestState localBestStateSoFar = null;
                     double localBestValueSoFar = -1;
@@ -161,7 +166,7 @@ public class PlayerSkeleton {
                         state.makeMove(s.nextPiece, legalMoves[j][ORIENT], legalMoves[j][SLOT]);
                         
                         double value = 0;
-                        if (maxHeight(state) > 8 && !state.lost) {
+                        if (maxHeight(state) > LOOKAHEAD_LIMIT && !state.lost) {
                             value = evaluateState(state);
                         } else {
                             value = evaluateOneLevelLower(state);
@@ -189,12 +194,15 @@ public class PlayerSkeleton {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    return new Object();
+                    return null;
                 }
             });
+            
+            // Add to list of tasks to check for completion
             tasks.add(future);
         }
-            
+        
+        // Wait for all the threads to complete their work
         for (Future<?> currTask : tasks) {
             try {
                 currTask.get();
@@ -202,68 +210,9 @@ public class PlayerSkeleton {
                 thrown.printStackTrace();
             }
         }
-            
-            /*
-            final int threadNum = i;
-            
-            final Thread t1 = new Thread(new Runnable() {
-                public void run() {                    
-                    TestState localBestStateSoFar = null;
-                    double localBestValueSoFar = -1;
-                    int localBestMoveSoFar = 0;
-                
-                    for (int j=threadNum; j<legalMoves.length; j+=NUM_THREADS) {
-                        TestState state = new TestState(s);
-                        state.makeMove(s.nextPiece, legalMoves[j][ORIENT], legalMoves[j][SLOT]);
-                        
-                        double value = 0;
-                        if (maxHeight(state) > 8 && !state.lost) {
-                            value = evaluateState(state);
-                        } else {
-                            value = evaluateOneLevelLower(state);
-                        }
-                        
-                        if (value > localBestValueSoFar || localBestStateSoFar == null) {
-                            localBestStateSoFar = state;
-                            localBestValueSoFar = value;
-                            localBestMoveSoFar = j;
-                        }
-                    }
-                    
-                    try {
-                        
-                        mutex.release();
-                        
-                        if (localBestValueSoFar > bestValueSoFar || bestStateSoFar == null) {
-                            bestStateSoFar = localBestStateSoFar;
-                            bestValueSoFar = localBestValueSoFar;
-                            bestMoveSoFar = localBestMoveSoFar;
-                        }
-
-                        mutex.take();
-                        
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                       
-                }
-            });
-            
-            ts.add(t1);
-            t1.start();
-            
-        }
-        */
-        // Join the threads back
-        /*
-        try {
-            for (Thread t: ts) {
-                t.join();
-            }
-        } catch(Exception e) {
-            System.out.println("gg");
-        }*/
+      
         //////////////////////////////////////////////////////////////////////////
+
         /*
         for (int i = 0; i < legalMoves.length; i++) {
             TestState state = new TestState(s);

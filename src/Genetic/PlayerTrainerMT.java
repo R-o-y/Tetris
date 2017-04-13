@@ -58,7 +58,7 @@ public class PlayerTrainerMT {
 
 		
 		
-        BufferedReader in = new BufferedReader(new FileReader("log.txt"));
+        BufferedReader in = new BufferedReader(new FileReader("logs0.txt"));
         Population p = new Population(rootConf);
         String line = null;
         int count = 0;
@@ -98,6 +98,7 @@ public class PlayerTrainerMT {
 		
 		
 		for (int i = 0; i < MAX_EVOLUTION_CYCLES; i++){
+            System.out.println("EVOLUTION CYCLE NO. " + i);
 			populations = megaEvolve(populations);
 			System.out.println("merge");
 			Population pop = megaMerge(populations);
@@ -108,8 +109,15 @@ public class PlayerTrainerMT {
 			System.out.println("write");
 			updateLog(pop.toChromosomes());
 			
-			
 			IChromosome best = population.getFittestChromosome();
+            Gene[] gene_array = best.getGenes();
+
+			String s = "Fittest chromosome weights and value: ";
+            for (int g = 0; g < gene_array.length; g++) {
+                s += gene_array[g].getAllele() + " ";
+            }
+            s += best.getFitnessValue() + " ";
+            System.out.println(s);
 			System.out.println(best.getFitnessValue());
 		}	
 	}

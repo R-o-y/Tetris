@@ -1,5 +1,13 @@
 package Genetic;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import Genetic.PlayerSkeleton.TestState;
 
 // Features being used are:
 // 1. Height sum
@@ -8,6 +16,8 @@ import java.util.Arrays;
 // 4. Height variation (between adjacent columns)
 // 5. Terminal i.e. lost state
 public class PlayerSkeletonOneLayer {
+    
+    public static final int NUM_THREADS = 3; // 4;
 
     // public static double HEIGHT_SUM_WEIGHT = 0.51f;
     public static double NUM_HOLES_WEIGHT;
@@ -109,6 +119,13 @@ public class PlayerSkeletonOneLayer {
         }
 
     }
+    
+    ExecutorService executorService = Executors.newFixedThreadPool(NUM_THREADS);
+    public volatile double bestValueSoFar = -1;
+    public volatile TestState bestStateSoFar = null;
+    public volatile int bestMoveSoFar = 0;
+    
+    public static int LOOKAHEAD_LIMIT = 8;
 
     // implement this function to have a working system
     public int pickMove(State s, int[][] legalMoves) {
@@ -116,6 +133,81 @@ public class PlayerSkeletonOneLayer {
         // legalMoves: an array of n total possible moves
         // each one of n moves contain orientation as index 0 and slot as index
         // 1
+        
+        //////////////////////////////////////////////////////////////////////////
+        //
+        // Applying Multi-Threading to Player
+        //
+        //////////////////////////////////////////////////////////////////////////
+
+        bestValueSoFar = -1;
+        bestStateSoFar = null;
+        bestMoveSoFar = 0;
+        Mutex mutex = new Mutex();
+        Collection<Future<?>> tasks = new LinkedList<Future<?>>();
+        
+        // Request for work to be done by NUM_THREADS threads.
+        for (int i=0; i<NUM_THREADS; i++) {
+            final int threadNum = i;
+            Future<?> future = executorService.submit(new Callable<Object>() {
+                public Object call() throws Exception {
+                    TestState localBestStateSoFar = null;
+                    double localBestValueSoFar = -1;
+                    int localBestMoveSoFar = 0;
+                
+                    for (int j=threadNum; j<legalMoves.length; j+=NUM_THREADS) {
+                        TestState state = new TestState(s);
+                        state.makeMove(s.nextPiece, legalMoves[j][ORIENT], legalMoves[j][SLOT]);
+                        
+                        double value = 0;
+                        if (maxHeight(state) > LOOKAHEAD_LIMIT && !state.lost) {
+                            value = evaluateState(state);
+                        } else {
+                            value = evaluateOneLevelLower(state);
+                        }
+                        
+                        if (value > localBestValueSoFar || localBestStateSoFar == null) {
+                            localBestStateSoFar = state;
+                            localBestValueSoFar = value;
+                            localBestMoveSoFar = j;
+                        }
+                    }
+                    
+                    try {
+                        
+                        mutex.release();
+                        
+                        if (localBestValueSoFar > bestValueSoFar || bestStateSoFar == null) {
+                            bestStateSoFar = localBestStateSoFar;
+                            bestValueSoFar = localBestValueSoFar;
+                            bestMoveSoFar = localBestMoveSoFar;
+                        }
+
+                        mutex.take();
+                        
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                }
+            });
+            
+            // Add to list of tasks to check for completion
+            tasks.add(future);
+        }
+        
+        // Wait for all the threads to complete their work
+        for (Future<?> currTask : tasks) {
+            try {
+                currTask.get();
+            } catch (Throwable thrown) {
+                thrown.printStackTrace();
+            }
+        }
+        
+        //////////////////////////////////////////////////////////////////////////
+        
+        /*
         double bestValueSoFar = -1;
         TestState bestStateSoFar = null;
         int bestMoveSoFar = 0;
@@ -129,7 +221,7 @@ public class PlayerSkeletonOneLayer {
                 bestMoveSoFar = i;
             }
 
-        }
+        }*/
         return bestMoveSoFar;
     }
 
