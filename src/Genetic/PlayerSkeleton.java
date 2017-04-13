@@ -135,7 +135,7 @@ public class PlayerSkeleton {
     public volatile TestState bestStateSoFar = null;
     public volatile int bestMoveSoFar = 0;
     
-    public static int LOOKAHEAD_LIMIT = 8;
+    public static int LOOKAHEAD_LIMIT = 8;  // 8
 
     // implement this function to have a working system
     public int pickMove(State s, int[][] legalMoves) {
@@ -417,12 +417,17 @@ public class PlayerSkeleton {
         long now = System.nanoTime();
         while (!s.lost) {
             s.makeMove(p.pickMove(s, s.legalMoves()));
-
+            
+            if (s.getRowsCleared() % 1000 == 0) {
+                System.out.println("Rows cleared: " + s.getRowsCleared());
+                //System.out.println("Rows cleared: " + s.getRowsCleared() + ", Current height: " + Arrays.toString(s.getTop()));
+            }
+            /*
             if (s.getRowsCleared() >= 100000) {
                 System.out.println(System.nanoTime() - now);
                 break;
-            }
-
+            }*/
+            
         }
 
         System.out.println("player have completed " + s.getRowsCleared() + " rows.");
