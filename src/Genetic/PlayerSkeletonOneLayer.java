@@ -17,7 +17,7 @@ import Genetic.PlayerSkeleton.TestState;
 // 5. Terminal i.e. lost state
 public class PlayerSkeletonOneLayer {
     
-    public static final int NUM_THREADS = 3; // 4;
+    public static final int NUM_THREADS = 4; // 4;
 
     // public static double HEIGHT_SUM_WEIGHT = 0.51f;
     public static double NUM_HOLES_WEIGHT;
@@ -159,12 +159,8 @@ public class PlayerSkeletonOneLayer {
                         TestState state = new TestState(s);
                         state.makeMove(s.nextPiece, legalMoves[j][ORIENT], legalMoves[j][SLOT]);
                         
-                        double value = 0;
-                        if (maxHeight(state) > LOOKAHEAD_LIMIT && !state.lost) {
-                            value = evaluateState(state);
-                        } else {
-                            value = evaluateOneLevelLower(state);
-                        }
+                        double value = evaluateOneLevelLower(state);
+                        
                         
                         if (value > localBestValueSoFar || localBestStateSoFar == null) {
                             localBestStateSoFar = state;
