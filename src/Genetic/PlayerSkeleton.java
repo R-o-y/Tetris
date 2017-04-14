@@ -47,6 +47,8 @@ import java.util.concurrent.Future;
  */
 public class PlayerSkeleton {
     
+    // Minimum column height limit before doing lookahead
+    public static int LOOKAHEAD_LIMIT = 20;  // 8
     public static final int NUM_THREADS = 4; // 4;
 
     public static double NUM_HOLES_WEIGHT;
@@ -157,9 +159,6 @@ public class PlayerSkeleton {
     public volatile double bestValueSoFar = -1;
     public volatile TestState bestStateSoFar = null;
     public volatile int bestMoveSoFar = 0;
-    
-    // Minimum column height limit before doing lookahead
-    public static int LOOKAHEAD_LIMIT = 8;  // 8
 
     // implement this function to have a working system
     public int pickMove(State s, int[][] legalMoves) {
