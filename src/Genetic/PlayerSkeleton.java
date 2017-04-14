@@ -48,7 +48,7 @@ import java.util.concurrent.Future;
 public class PlayerSkeleton {
     
     // Minimum column height limit before doing lookahead
-    public static int LOOKAHEAD_LIMIT = 6;
+    public static int LOOKAHEAD_LIMIT = 5;
     public static final int NUM_THREADS = 4;
 
     public static double NUM_HOLES_WEIGHT;
@@ -444,6 +444,25 @@ public class PlayerSkeleton {
         MEAN_HEIGHT_DIFF_WEIGHT = weights[6];
 
     }
+    
+    /**
+     *  Mutex class used for mutual exclusion in multi-threading portions of the 
+     *  AI learning and playing.
+     */
+    public class Mutex {
+        private boolean signal = true;
+
+        public synchronized void release() {
+            this.signal = true;
+            this.notify();
+        }
+
+        public synchronized void take() throws InterruptedException{
+            while(!this.signal) wait();
+            this.signal = false;
+        }
+    }
+
 
 
     /*
