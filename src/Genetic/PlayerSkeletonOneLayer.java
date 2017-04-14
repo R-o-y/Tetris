@@ -17,7 +17,7 @@ import Genetic.PlayerSkeleton.TestState;
  */
 public class PlayerSkeletonOneLayer {
     
-    public static final int NUM_THREADS = 4; // 4;
+    public static final int NUM_THREADS = 4;
 
     // public static double HEIGHT_SUM_WEIGHT = 0.51f;
     public static double NUM_HOLES_WEIGHT;
@@ -159,8 +159,7 @@ public class PlayerSkeletonOneLayer {
                         TestState state = new TestState(s);
                         state.makeMove(s.nextPiece, legalMoves[j][ORIENT], legalMoves[j][SLOT]);
                         
-                        double value = evaluateOneLevelLower(state);
-                        
+                        double value = evaluateOneLevelLower(state);                        
                         
                         if (value > localBestValueSoFar || localBestStateSoFar == null) {
                             localBestStateSoFar = state;
@@ -261,27 +260,15 @@ public class PlayerSkeletonOneLayer {
     private double evaluateOneLevelLower(TestState state) {
         // Evaluate the state given features to be tested and weights
 
-        double h =
-                /*-heightSum(state) * HEIGHT_SUM_WEIGHT + */
-                -numHoles(state) * NUM_HOLES_WEIGHT + numRowsCleared(state) * COMPLETE_LINES_WEIGHT
-                        + -heightVariationSum(state) * HEIGHT_VAR_WEIGHT + lostStateValue(state) * LOST_WEIGHT
-                        + -maxHeight(state) * MAX_HEIGHT_WEIGHT + -pitDepthValue(state) * PIT_DEPTH_WEIGHT
-                        + -meanHeightDiffValue(state) * MEAN_HEIGHT_DIFF_WEIGHT;
+        double h =  -numHoles(state) * NUM_HOLES_WEIGHT + numRowsCleared(state) * COMPLETE_LINES_WEIGHT
+                  + -heightVariationSum(state) * HEIGHT_VAR_WEIGHT + lostStateValue(state) * LOST_WEIGHT
+                  + -maxHeight(state) * MAX_HEIGHT_WEIGHT + -pitDepthValue(state) * PIT_DEPTH_WEIGHT
+                  + -meanHeightDiffValue(state) * MEAN_HEIGHT_DIFF_WEIGHT;
         return h;
     }
 
     private int lostStateValue(TestState state) {
         return hasLost(state) ? -10 : 0;
-    }
-
-    private static int heightSum(TestState s) {
-        int[] top = s.top;
-        int sum = 0;
-        for (int height : top) {
-            sum += height;
-        }
-
-        return sum;
     }
 
     private static int maxHeight(TestState s) {
@@ -392,11 +379,9 @@ public class PlayerSkeletonOneLayer {
     }
 
     public static void main(String[] args) {
-
         for (int k = 0; k < 8; k++) {
             State s = new State();
             double[] weights = {
-
                     1.0673515084146694,
                     0.5518373660872153,
                     0.13114119880147435,
@@ -404,7 +389,6 @@ public class PlayerSkeletonOneLayer {
                     0.013608946139451739,
                     0.3436325190123959,
                     0.3589287624556017
-
             };
             PlayerSkeletonOneLayer p = new PlayerSkeletonOneLayer(weights);
             while (!s.lost) {
@@ -425,18 +409,16 @@ public class PlayerSkeletonOneLayer {
         MEAN_HEIGHT_DIFF_WEIGHT = weights[6];
     }
 
-    public PlayerSkeletonOneLayer() {
-    }
+    public PlayerSkeletonOneLayer() { }
 
+    // This method is used to train the agent via a genetic algorithm
     public int run() {
         State s = new State();
-        while (!s.lost) {
+        while (!s.lost)
             s.makeMove(pickMove(s, s.legalMoves()));
-        }
         int rowCleared = s.getRowsCleared();
-        if (rowCleared > 1000000) {
+        if (rowCleared > 1000000)
             System.out.println("------------------------million-------------------------");
-        }
         System.out.println("OneLayerPlayer has completed " + rowCleared + " rows.");
         return s.getRowsCleared();
     }

@@ -48,8 +48,8 @@ import java.util.concurrent.Future;
 public class PlayerSkeleton {
     
     // Minimum column height limit before doing lookahead
-    public static int LOOKAHEAD_LIMIT = 20;  // 8
-    public static final int NUM_THREADS = 4; // 4;
+    public static int LOOKAHEAD_LIMIT = 20;
+    public static final int NUM_THREADS = 4;
 
     public static double NUM_HOLES_WEIGHT;
     public static double COMPLETE_LINES_WEIGHT;
@@ -86,9 +86,8 @@ public class PlayerSkeleton {
 
         private int[][] cloneField(int[][] field) {
             int[][] newField = new int[field.length][];
-            for (int i = 0; i < newField.length; i++) {
+            for (int i = 0; i < newField.length; i++)
                 newField[i] = Arrays.copyOf(field[i], field[i].length);
-            }
             return newField;
         }
 
@@ -193,11 +192,10 @@ public class PlayerSkeleton {
                         state.makeMove(s.nextPiece, legalMoves[j][ORIENT], legalMoves[j][SLOT]);
                         
                         double value = 0;
-                        if (maxHeight(state) > LOOKAHEAD_LIMIT && !state.lost) {
+                        if (maxHeight(state) > LOOKAHEAD_LIMIT && !state.lost)
                             value = evaluateState(state);
-                        } else {
+                        else
                             value = evaluateOneLevelLower(state);
-                        }
                         
                         if (value > localBestValueSoFar || localBestStateSoFar == null) {
                             localBestStateSoFar = state;
@@ -206,8 +204,7 @@ public class PlayerSkeleton {
                         }
                     }
                     
-                    try {
-                        
+                    try {                        
                         // After thread completes, update the best one at a time
                         mutex.take();
                         
@@ -273,8 +270,7 @@ public class PlayerSkeleton {
                }
             });
             
-            tasks.add(future);
-            
+            tasks.add(future);           
         }
         
         double sumLowerLevel = 0;
@@ -314,10 +310,8 @@ public class PlayerSkeleton {
     private static int maxHeight(TestState s) {
         int[] top = s.top;
         int maxSoFar = -1;
-        for (int i : top) {
+        for (int i : top)
             maxSoFar = Math.max(maxSoFar, i);
-        }
-
         return maxSoFar;
     }
 
@@ -345,10 +339,8 @@ public class PlayerSkeleton {
     private static int heightVariationSum(TestState s) {
         int[] top = s.top;
         int varSum = 0;
-        for (int i = 0; i < top.length - 1; i++) {
+        for (int i = 0; i < top.length - 1; i++)
             varSum += Math.abs(top[i] - top[i + 1]);
-        }
-
         return varSum;
     }
 
@@ -393,9 +385,8 @@ public class PlayerSkeleton {
         pitColHeight = top[State.COLS - 1];
         leftColHeight = top[State.COLS - 2];
         diff = leftColHeight - pitColHeight;
-        if (diff > 2) {
+        if (diff > 2)
             pitDepthSum += diff;
-        }
 
         return pitDepthSum;
 
@@ -406,17 +397,14 @@ public class PlayerSkeleton {
         int[] top = s.top;
 
         int sum = 0;
-        for (int height : top) {
+        for (int height : top)
             sum += height;
-        }
 
         float meanHeight = (float) sum / top.length;
 
         float avgDiff = 0;
-        for (int height : top) {
+        for (int height : top)
             avgDiff += Math.abs(meanHeight - height);
-        }
-
         return avgDiff / top.length;
     }
 
@@ -438,10 +426,8 @@ public class PlayerSkeleton {
         PlayerSkeleton p = new PlayerSkeleton(weights);
         while (!s.lost) {
             s.makeMove(p.pickMove(s, s.legalMoves()));
-            
-            if (s.getRowsCleared() % 10000 == 0) {
-                System.out.println("Rows cleared: " + s.getRowsCleared());
-            }           
+            if (s.getRowsCleared() % 10000 == 0)
+                System.out.println("Rows cleared: " + s.getRowsCleared());     
         }
 
         System.out.println("Player has completed " + s.getRowsCleared() + " rows.");
@@ -458,20 +444,6 @@ public class PlayerSkeleton {
 
     }
 
-    // This method is used to train the agent via a genetic algorithm
-    public int run() {
-
-        State s = new State();
-        while (!s.lost) {
-            s.makeMove(pickMove(s, s.legalMoves()));
-            // if (s.getRowsCleared() % 100000 == 0) {
-            // System.out.println(s.getRowsCleared());
-            // }
-        }
-        System.out.println("Trainer has completed " + s.getRowsCleared() + " rows.");
-
-        return s.getRowsCleared();
-    }
 
     /*
      * =============== Random info copied from State.java ===============
