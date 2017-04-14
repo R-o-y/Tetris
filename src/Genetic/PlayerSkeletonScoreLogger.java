@@ -530,7 +530,8 @@ public class PlayerSkeletonScoreLogger {
       			}
       			 //time in secs
       			double runtime = (System.currentTimeMillis() - start)/1000;
-      			
+      			p.executorService.shutdown();
+      			p.executorServiceAgain.shutdown();
       			System.out.println(s.getRowsCleared() + "," + runtime);
               }
               

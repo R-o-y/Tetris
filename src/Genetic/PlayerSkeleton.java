@@ -429,7 +429,8 @@ public class PlayerSkeleton {
             if (s.getRowsCleared() % 10000 == 0)
                 System.out.println("Rows cleared: " + s.getRowsCleared());     
         }
-
+        p.executorService.shutdown();
+        p.executorServiceAgain.shutdown();
         System.out.println("Player has completed " + s.getRowsCleared() + " rows.");
     }
 

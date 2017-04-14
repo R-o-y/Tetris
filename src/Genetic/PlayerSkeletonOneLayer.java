@@ -394,7 +394,8 @@ public class PlayerSkeletonOneLayer {
             while (!s.lost) {
                 s.makeMove(p.pickMove(s, s.legalMoves()));
             }
-
+            p.executorService.shutdown();
+            p.executorServiceAgain.shutdown();
             System.out.println("You have completed " + s.getRowsCleared() + " rows.");
         }
     }
