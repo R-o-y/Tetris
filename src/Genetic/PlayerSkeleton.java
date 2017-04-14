@@ -48,7 +48,7 @@ import java.util.concurrent.Future;
 public class PlayerSkeleton {
     
     // Minimum column height limit before doing lookahead
-    public static int LOOKAHEAD_LIMIT = 20;
+    public static int LOOKAHEAD_LIMIT = 6;
     public static final int NUM_THREADS = 4;
 
     public static double NUM_HOLES_WEIGHT;
